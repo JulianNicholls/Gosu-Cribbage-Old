@@ -23,10 +23,9 @@ module Cribbage
   end
 
   class GosuHand < Hand
-    def initialize( pack, window, front, back, font )
+    def initialize( pack )
       @cards = Array.new( 6 ) { pack.deal( GosuCard ) }
       @cards.sort_by! { |c| c.rank }
-      @cards.each { |c| c.set_display( window, front, back, font ) }
     end
   end
 end

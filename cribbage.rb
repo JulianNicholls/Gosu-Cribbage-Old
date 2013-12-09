@@ -37,10 +37,16 @@ class CribbageGame < Gosu::Window
     @font = Gosu::Font.new( self, 'Arial', 50 )
     @card_font = Gosu::Font.new( self, 'Courier New', 24 )
 
-    @player_hand   = Cribbage::GosuHand.new( @pack, self, @card_front_image, @card_back_image, @card_font )
-    @computer_hand = Cribbage::GosuHand.new( @pack, self, @card_front_image, @card_back_image, @card_font )
+    Cribbage::GosuCard.set_display( @card_front_image, @card_back_image, @card_font )
+
+    @player_hand   = Cribbage::GosuHand.new( @pack )
+    @computer_hand = Cribbage::GosuHand.new( @pack )
 
     @card_cut = nil
+  end
+
+  def needs_cursor?
+    true
   end
 
   def update
@@ -65,7 +71,8 @@ class CribbageGame < Gosu::Window
 
   def draw_hand( hand, x, y, orient )
     hand.cards.each do |c|
-      c.draw( x, y, orient )
+      c.x, c.y = x, y
+      c.draw( orient )
       x += CARD_WIDTH + CARD_GAP
     end
   end

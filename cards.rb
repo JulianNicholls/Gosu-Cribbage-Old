@@ -62,21 +62,25 @@ module Cribbage
 
   class GosuCard < Card
 
-    RED_COLOUR   = 0xff800000
+    attr_accessor :x, :y
+
+    RED_COLOUR   = 0xffa00000
     BLACK_COLOUR = 0xff000000
 
-    def set_display( window, front, back, font )
-      @window = window
-      @back_image, @front_image = back, front
-      @font = font
+    def self.set_display( front, back, font )
+      @@back_image, @@front_image = back, front
+      @@font = font
     end
 
-    def draw( x, y, orient = :face_up )
+    def draw( orient = :face_up, front = nil, back = nil, font = nil )
       if orient == :face_down
-        @back_image.draw( x, y, 1 )
+        image = back || @@back_image
+        image.draw( @x, @y, 1 )
       else
-        @front_image.draw( x, y, 1 )
-        @font.draw( "#{rank}#{suit_char}", x+10, y+10, 1, 1, 1, suit.odd? ? RED_COLOUR : BLACK_COLOUR )
+        image = front || @@front_image
+        cfont = font  || @@font
+        image.draw( @x, @y, 1 )
+        cfont.draw( "#{rank_name.slice(0)}#{suit_char}", x+10, y+10, 1, 1, 1, suit.odd? ? RED_COLOUR : BLACK_COLOUR )
       end
     end
   end

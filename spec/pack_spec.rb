@@ -1,4 +1,4 @@
-require_relative '../cards'
+require_relative '../card'
 
 describe Cribbage::Pack do
   before :each do

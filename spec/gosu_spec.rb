@@ -13,10 +13,10 @@ describe Cribbage::GosuCard do
   subject { card }
 
   it { should respond_to :draw }
-  it { should respond_to :x }
-  it { should respond_to :y }
-  it { should respond_to :x= }
-  it { should respond_to :y= }
+  it { should respond_to :set_area }
+  it { should respond_to :move_to }
+  it { should respond_to :move_by }
+  it { should respond_to :inside? }
 end
 
 

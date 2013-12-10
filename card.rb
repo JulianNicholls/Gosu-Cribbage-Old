@@ -1,3 +1,5 @@
+require './region'
+
 module Cribbage
   # class to hold a card. both rank and suit are 1-based.
 
@@ -62,7 +64,7 @@ module Cribbage
 
   class GosuCard < Card
 
-    attr_accessor :x, :y
+    include Region
 
     RED_COLOUR   = 0xffa00000
     BLACK_COLOUR = 0xff000000
@@ -75,52 +77,14 @@ module Cribbage
     def draw( orient = :face_up, front = nil, back = nil, font = nil )
       if orient == :face_down
         image = back || @@back_image
-        image.draw( @x, @y, 1 )
+        image.draw( left, top, 1 )
       else
         image = front || @@front_image
         cfont = font  || @@font
-        image.draw( @x, @y, 1 )
-        cfont.draw( "#{rank_name.slice(0)}#{suit_char}", x+10, y+10, 1, 1, 1, suit.odd? ? RED_COLOUR : BLACK_COLOUR )
+        image.draw( left, top, 1 )
+        cfont.draw( "#{rank_name.slice(0)}#{suit_char}", left + 10, top + 10, 1, 1, 1, suit.odd? ? RED_COLOUR : BLACK_COLOUR )
       end
     end
-  end
-
-
-  # Represent a pack of cards as a 1..52 array and deal cards from it.
-
-  class Pack
-
-    def initialize
-      @cards = Array.new( 52, 1 )
-      @left  = 52		# Cards left
-    end
-
-    def deal( klass = Card )
-      return nil if empty?    # Is this valid? should we punish emptyness with an exception
-
-      card = rand 52
-
-      card = rand( 52 ) while @cards[card] == 0
-
-      @cards[card] = 0
-      @left -= 1
-      klass.new( (card / 4) + 1, (card % 4) + 1 )
-    end
-
-    def empty?
-      @left == 0
-    end
-
-    # I can't think of another way to cut a card at the moment
-
-    def cut
-      deal
-    end
-
-  protected
-
-    attr_reader :left
-
   end
 
 end

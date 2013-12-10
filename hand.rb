@@ -1,4 +1,5 @@
-require './cards'
+require './pack'
+require './card'
 
 module Cribbage
 

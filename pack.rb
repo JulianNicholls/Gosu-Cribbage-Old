@@ -1,12 +1,14 @@
 # Represent a pack of cards as a 1..52 array and deal cards from it.
 
+require './region'
+
 module Cribbage
 
   class Pack
 
     def initialize
-      @cards = Array.new( 52, 1 )
-      @left  = 52   # Cards left
+      @cards      = Array.new( 52, 1 )
+      @cards_left = 52   # Cards left
     end
 
     def deal( klass = Card )
@@ -17,12 +19,12 @@ module Cribbage
       card = rand( 52 ) while @cards[card] == 0
 
       @cards[card] = 0
-      @left -= 1
+      @cards_left -= 1
       klass.new( (card / 4) + 1, (card % 4) + 1 )
     end
 
     def empty?
-      @left == 0
+      @cards_left == 0
     end
 
     # I can't think of another way to cut a card at the moment
@@ -33,7 +35,34 @@ module Cribbage
 
   protected
 
-    attr_reader :left
+    attr_reader :cards_left
 
+  end
+
+
+  class GosuPack < Pack
+
+    include Region
+
+    def set_images( back, front )
+      @back, @front = back, front
+    end
+
+    def set_position( pos_left, pos_top )
+      set_area( pos_left, pos_top, CribbageGame::CARD_WIDTH, CribbageGame::CARD_HEIGHT )
+    end
+
+    def draw
+      @back.draw( left, top, 1 )
+    end
+
+    def draw_fan( pos_left, pos_top, gap, orient )
+      while left > 0
+        card = deal( GosuCard )
+        card.set_position( pos_left, pos_top )
+        card.draw( orient )
+        pos_left += gap
+      end
+    end
   end
 end

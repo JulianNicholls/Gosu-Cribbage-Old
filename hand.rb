@@ -25,7 +25,7 @@ module Cribbage
 
   class GosuHand < Hand
     def initialize( pack )
-      @cards = Array.new( 6 ) { pack.deal( GosuCard ) }
+      @cards = Array.new( 6 ) { pack.deal }
       @cards.sort_by! { |c| c.rank }
     end
   end

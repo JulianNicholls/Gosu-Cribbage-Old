@@ -39,17 +39,28 @@ module Cribbage
 
   end
 
-
   class GosuPack < Pack
 
     include Region
+
+    def initialize
+      super
+
+      @fan = []
+    end
+
+    def deal
+      super( GosuCard )
+    end
+
+    alias_method :cut, :deal
 
     def set_images( back, front )
       @back, @front = back, front
     end
 
-    def set_position( pos_left, pos_top )
-      set_area( pos_left, pos_top, CribbageGame::CARD_WIDTH, CribbageGame::CARD_HEIGHT )
+    def set_position( left, top )
+      set_area( left, top, CribbageGame::CARD_WIDTH, CribbageGame::CARD_HEIGHT )
     end
 
     def draw
@@ -61,6 +72,8 @@ module Cribbage
         card = deal( GosuCard )
         card.set_position( pos_left, pos_top )
         card.draw( orient )
+        @fan.push card
+
         pos_left += gap
       end
     end

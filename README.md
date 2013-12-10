@@ -9,3 +9,4 @@ via the mouse. After discarding, clicking on the pack at the right hand side wil
 cut a card, and display the value of the player's hand with the cut card. This can
 be done repeatedly for now.
 
+Press Escape to Exit.

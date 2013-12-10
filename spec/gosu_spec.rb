@@ -6,7 +6,7 @@ require 'spec_helper'
 describe Cribbage::GosuCard do
   let( :card  ) { Cribbage::GosuCard.new( 1, 1 ) }
 
-  it "should respond to set_display" do
+  it "class should respond to set_display" do
     expect( card.class.respond_to? :set_display ).to eq true
   end
 
@@ -14,6 +14,7 @@ describe Cribbage::GosuCard do
 
   it { should respond_to :draw }
   it { should respond_to :set_area }
+  it { should respond_to :set_position }
   it { should respond_to :move_to }
   it { should respond_to :move_by }
   it { should respond_to :inside? }

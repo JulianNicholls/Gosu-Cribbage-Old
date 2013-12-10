@@ -7,6 +7,13 @@ require './scorer'
 
 class CribbageGame < Gosu::Window
 
+  DEAL        = 0
+  DISCARDING  = 1
+  CUT_CARD    = 2
+  PLAY_31     = 3
+  THE_SHOW    = 4
+  CRIB_SHOW   = 5
+
   WIDTH   = 800
   HEIGHT  = 600
 
@@ -30,6 +37,9 @@ class CribbageGame < Gosu::Window
   PACK_TOP  = MID_Y - (CARD_HEIGHT / 2)
   PACK_LEFT = WIDTH - (CARD_WIDTH + CARD_GAP)
 
+  CRIB_TOP  = PACK_TOP
+  CRIB_LEFT = PACK_LEFT - (CARD_WIDTH + CARD_GAP)
+
   BUTTON_HEIGHT = 40
   DISCARD_TOP   = PLAYER_TOP - BUTTON_HEIGHT*2
   DISCARD_LEFT  = CARD_GAP*3
@@ -46,6 +56,8 @@ class CribbageGame < Gosu::Window
     @discard_button = Button.new( self, 'Discard', @button_font, DISCARD_COLOUR, DISCARD_LEFT, DISCARD_TOP )
     @selected = []
     @show_discard_button = false
+    @game_phase = DISCARDING
+    @show_crib = FALSE
   end
 
   def needs_cursor?
@@ -57,18 +69,18 @@ class CribbageGame < Gosu::Window
       @card_name = nil
       @score = nil
 
-      if @position[0].between?( PACK_LEFT, PACK_LEFT + CARD_WIDTH ) &&
+      if @game_phase == CUT_CARD &&
+         @position[0].between?( PACK_LEFT, PACK_LEFT + CARD_WIDTH ) &&
          @position[1].between?( PACK_TOP, PACK_TOP + CARD_HEIGHT )      # && @card_cut.nil?
         cut_card
         @card_name = @card_cut.name
         @score = Cribbage::Scorer.new( @player_hand, @card_cut ).evaluate
         @position = nil
-      elsif @show_discard_button && @discard_button.inside?( *@position )
-        @player_hand.discard( *@selected )
-        @show_discard_button = false
+      elsif @show_discard_button && @discard_button.inside?( @position )
+        discard_crib_cards
         @position = nil
       else
-        @position = nil if select_card
+        @position = nil if @game_phase == DISCARDING && select_card
       end
     end
   end
@@ -88,11 +100,17 @@ class CribbageGame < Gosu::Window
     @card_cut.draw( :face_up ) if @card_cut
 
     @discard_button.draw if @show_discard_button
+    draw_crib if @show_crib
+
     debug_display
   end
 
   def draw_hand( hand, orient )
     hand.cards.each { |c| c.draw( orient ) }
+  end
+
+  def draw_crib
+    @card_back_image.draw( CRIB_LEFT, CRIB_TOP, 1 )
   end
 
   def button_down btn_id
@@ -122,27 +140,34 @@ class CribbageGame < Gosu::Window
     @player_hand   = Cribbage::GosuHand.new( @pack )
     @computer_hand = Cribbage::GosuHand.new( @pack )
 
-    left = PLAYER_LEFT
-
-    6.times do |idx|
-      @player_hand.cards[idx].set_area( left, PLAYER_TOP, CARD_WIDTH, CARD_HEIGHT );
-      @computer_hand.cards[idx].set_area( left, COMPUTER_TOP, CARD_WIDTH, CARD_HEIGHT );
-
-      left += CARD_WIDTH + CARD_GAP
-    end
+    set_hand_positions
 
     @card_cut = nil
   end
 
+  def set_hand_positions
+    pcards = @player_hand.cards.length
+    ccards = @computer_hand.cards.length
+
+    left = PLAYER_LEFT
+
+    [pcards, ccards].max.times do |idx|
+      @player_hand.cards[idx].set_area( left, PLAYER_TOP, CARD_WIDTH, CARD_HEIGHT )     if idx < pcards
+      @computer_hand.cards[idx].set_area( left, COMPUTER_TOP, CARD_WIDTH, CARD_HEIGHT ) if idx < ccards
+
+      left += CARD_WIDTH + CARD_GAP
+    end
+  end
+
   def cut_card
      @card_cut = @pack.cut( Cribbage::GosuCard )
-     @card_cut.x, @card_cut.y = PACK_LEFT + 2, PACK_TOP + 2
+     @card_cut.set_area( PACK_LEFT + 2, PACK_TOP + 2, CARD_WIDTH, CARD_HEIGHT )
   end
 
   def select_card
     found = false
     @player_hand.cards.each_with_index do |c, idx|
-      if c.inside?( *@position )
+      if c.inside?( @position )
         found = true
         @card_name = c.name
         sidx = @selected.index( idx )
@@ -156,17 +181,32 @@ class CribbageGame < Gosu::Window
         end
       end
     end
+
     @show_discard_button = (@selected.length == 2)
     found
   end
 
-  def debug_display
-    dbg_str = "Selected: #{@selected}"
+  def discard_crib_cards
+    @player_hand.discard( *@selected )
+    @computer_hand.discard( rand( 0..5 ), rand( 0..5 ) )
 
-    dbg_str += " - #{@position}" if @position
-    dbg_str += " - #{@card_name}" if @card_name
-    dbg_str += " - Score: #{@score}" if @score
-    @card_font.draw( dbg_str, CARD_GAP, MID_Y, 1 ) unless dbg_str == ''
+    @selected = []
+    @show_discard_button = false
+    @game_phase = CUT_CARD
+    @show_crib = true
+    set_hand_positions
+  end
+
+
+  def debug_display
+    dbg_str = ''
+
+    dbg_str += "Selected: #{@selected}" if !@selected.empty? || @game_phase == DISCARDING
+    dbg_str += " - #{@position}"        if @position
+    dbg_str += " - #{@card_name}"       if @card_name
+    dbg_str += " - Score: #{@score}"    if @score
+
+    @button_font.draw( dbg_str, CARD_GAP, MID_Y, 1 ) unless dbg_str == ''
   end
 end
 

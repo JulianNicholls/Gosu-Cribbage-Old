@@ -74,6 +74,10 @@ module Cribbage
       @@font = font
     end
 
+    def set_position( pos_left, pos_top )
+      set_area( pos_left, pos_top, CribbageGame::CARD_WIDTH, CribbageGame::CARD_HEIGHT )
+    end
+
     def draw( orient = :face_up, front = nil, back = nil, font = nil )
       if orient == :face_down
         image = back || @@back_image

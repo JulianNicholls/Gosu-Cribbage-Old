@@ -78,8 +78,8 @@ class CribbageGame < Gosu::Window
       elsif @show_discard_button && @discard_button.inside?( @position )
         discard_crib_cards
         @position = nil
-      else
-        @position = nil if @game_phase == DISCARDING && select_card
+      elsif @game_phase == DISCARDING
+        @position = nil if select_card
       end
     end
   end
@@ -161,7 +161,7 @@ class CribbageGame < Gosu::Window
   end
 
   def cut_card
-     @card_cut = @pack.cut( Cribbage::GosuCard )
+     @card_cut = @pack.cut
      @card_cut.set_position( PACK_LEFT + 2, PACK_TOP + 2 )
   end
 

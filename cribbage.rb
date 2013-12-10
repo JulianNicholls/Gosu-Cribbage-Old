@@ -60,7 +60,7 @@ class CribbageGame < Gosu::Window
     @show_crib = FALSE
   end
 
-  def needs_cursor?
+  def needs_cursor?   # Enable the mouse cursor
     true
   end
 
@@ -69,13 +69,12 @@ class CribbageGame < Gosu::Window
       @card_name = nil
       @score = nil
 
-      if @game_phase == CUT_CARD &&
-         @position[0].between?( PACK_LEFT, PACK_LEFT + CARD_WIDTH ) &&
-         @position[1].between?( PACK_TOP, PACK_TOP + CARD_HEIGHT )      # && @card_cut.nil?
+      if @game_phase == CUT_CARD && @pack.inside?( @position )  # && @card_cut.nil?
         cut_card
-        @card_name = @card_cut.name
-        @score = Cribbage::Scorer.new( @player_hand, @card_cut ).evaluate
+        @card_name = @card_cut.name  # DEBUG
+        @score = Cribbage::Scorer.new( @player_hand, @card_cut ).evaluate # DEBUG
         @position = nil
+        # @game_phase = PLAY_31
       elsif @show_discard_button && @discard_button.inside?( @position )
         discard_crib_cards
         @position = nil
@@ -96,7 +95,7 @@ class CribbageGame < Gosu::Window
 
     # Always draw the spare pack, and then the cut card on top if it's set
 
-    @card_back_image.draw( PACK_LEFT, PACK_TOP, 1 )
+    @pack.draw
     @card_cut.draw( :face_up ) if @card_cut
 
     @discard_button.draw if @show_discard_button
@@ -135,7 +134,9 @@ class CribbageGame < Gosu::Window
   def setup_cards
     Cribbage::GosuCard.set_display( @card_front_image, @card_back_image, @card_font )
 
-    @pack = Cribbage::Pack.new
+    @pack = Cribbage::GosuPack.new
+    @pack.set_position( PACK_LEFT, PACK_TOP )
+    @pack.set_images( @card_back_image, @card_front_image )
 
     @player_hand   = Cribbage::GosuHand.new( @pack )
     @computer_hand = Cribbage::GosuHand.new( @pack )
@@ -152,8 +153,8 @@ class CribbageGame < Gosu::Window
     left = PLAYER_LEFT
 
     [pcards, ccards].max.times do |idx|
-      @player_hand.cards[idx].set_area( left, PLAYER_TOP, CARD_WIDTH, CARD_HEIGHT )     if idx < pcards
-      @computer_hand.cards[idx].set_area( left, COMPUTER_TOP, CARD_WIDTH, CARD_HEIGHT ) if idx < ccards
+      @player_hand.cards[idx].set_position( left, PLAYER_TOP )     if idx < pcards
+      @computer_hand.cards[idx].set_position( left, COMPUTER_TOP ) if idx < ccards
 
       left += CARD_WIDTH + CARD_GAP
     end
@@ -161,7 +162,7 @@ class CribbageGame < Gosu::Window
 
   def cut_card
      @card_cut = @pack.cut( Cribbage::GosuCard )
-     @card_cut.set_area( PACK_LEFT + 2, PACK_TOP + 2, CARD_WIDTH, CARD_HEIGHT )
+     @card_cut.set_position( PACK_LEFT + 2, PACK_TOP + 2 )
   end
 
   def select_card
@@ -194,6 +195,7 @@ class CribbageGame < Gosu::Window
     @show_discard_button = false
     @game_phase = CUT_CARD
     @show_crib = true
+
     set_hand_positions
   end
 

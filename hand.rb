@@ -24,9 +24,22 @@ module Cribbage
   end
 
   class GosuHand < Hand
+
     def initialize( pack )
       @cards = Array.new( 6 ) { pack.deal }
       @cards.sort_by! { |c| c.rank }
     end
+
+    def set_positions( left, top, gap )
+      @cards.each do |c|
+        c.set_position( left, top )
+        left += gap
+      end
+    end
+
+    def draw( orient )
+      @cards.each { |c| c.draw( orient ) }
+    end
+
   end
 end

@@ -1,3 +1,7 @@
+# Mixin that defines a region of interest which can:
+#   Store and return the position of a screen item.
+#   Return whether a given position is inside it.
+
 module Region
 
   def set_area( left, top, width, height )
@@ -13,6 +17,8 @@ module Region
     @left += left_delta
     @top  += top_delta
   end
+
+  # Return whether a pair or array of co-ordinates is inside this region.
 
   def inside?( x, y = nil )
     if x.is_a? Array

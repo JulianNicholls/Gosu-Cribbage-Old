@@ -41,13 +41,8 @@ class Button
     @font.draw( @text, left + x_margin, top + y_margin, 1 )
   end
 
-  def show
-    @visible = true
-  end
-
-  def hide
-    @visible = false
-  end
+  def show; @visible = true;  end
+  def hide; @visible = false; end
 
   def inside?( x, y = nil )       # The position can't be inside an invisible button
     visible && super( x, y )

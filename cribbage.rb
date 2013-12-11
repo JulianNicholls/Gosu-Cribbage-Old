@@ -55,7 +55,6 @@ class CribbageGame < Gosu::Window
 
     @discard_button = Button.new( self, 'Discard', @button_font, DISCARD_COLOUR, DISCARD_LEFT, DISCARD_TOP )
     @selected = []
-    @show_discard_button = false
     @game_phase = DISCARDING
     @show_crib = FALSE
   end
@@ -65,22 +64,22 @@ class CribbageGame < Gosu::Window
   end
 
   def update
-    if @position
-      @card_name = nil
-      @score = nil
+    return if !@position
 
-      if @game_phase == CUT_CARD && @pack.inside?( @position )  # && @card_cut.nil?
-        cut_card
-        @card_name = @card_cut.name  # DEBUG
-        @score = Cribbage::Scorer.new( @player_hand, @card_cut ).evaluate # DEBUG
-        @position = nil
-        # @game_phase = PLAY_31
-      elsif @show_discard_button && @discard_button.inside?( @position )
-        discard_crib_cards
-        @position = nil
-      elsif @game_phase == DISCARDING
-        @position = nil if select_card
-      end
+    @card_name = nil
+    @score = nil
+
+    if @game_phase == CUT_CARD && @pack.inside?( @position )  # && @card_cut.nil?
+      cut_card
+      @card_name = @card_cut.name  # DEBUG
+      @score = Cribbage::Scorer.new( @player_hand, @card_cut ).evaluate # DEBUG
+      @position = nil
+      # @game_phase = PLAY_31
+    elsif @discard_button.inside?( @position )
+      discard_crib_cards
+      @position = nil
+    elsif @game_phase == DISCARDING
+      @position = nil if select_card
     end
   end
 
@@ -98,7 +97,7 @@ class CribbageGame < Gosu::Window
     @pack.draw
     @card_cut.draw( :face_up ) if @card_cut
 
-    @discard_button.draw if @show_discard_button
+    @discard_button.draw
     draw_crib if @show_crib
 
     debug_display
@@ -183,7 +182,7 @@ class CribbageGame < Gosu::Window
       end
     end
 
-    @show_discard_button = (@selected.length == 2)
+    @discard_button.visible = (@selected.length == 2)
     found
   end
 
@@ -192,7 +191,7 @@ class CribbageGame < Gosu::Window
     @computer_hand.discard( rand( 0..5 ), rand( 0..5 ) )
 
     @selected = []
-    @show_discard_button = false
+    @discard_button.hide()
     @game_phase = CUT_CARD
     @show_crib = true
 

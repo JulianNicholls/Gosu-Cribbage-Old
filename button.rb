@@ -1,10 +1,15 @@
 require './region'
 
+# The button can be made visible/invisible and by inference active/inactive both
+# via visible = true/false or via show() / hide()
+
 class Button
 
   include Region
 
-  def initialize( window, text, font, colour, left, top, width = nil, height = nil )
+  attr_accessor :visible
+
+  def initialize( window, text, font, colour, left, top, width = nil, height = nil, visible = false )
     @window, @text, @font, @colour = window, text, font, colour
 
     # If the width and/or height is not specified then measure the font and the button text
@@ -13,9 +18,12 @@ class Button
     height ||= @font.height * 2
 
     set_area( left, top, width, height )
+    @visible = visible
   end
 
   def draw
+    return if !visible
+
     # Centre the text on the button
 
     x_margin = (width - @font.text_width( @text, 1 )) / 2
@@ -33,4 +41,15 @@ class Button
     @font.draw( @text, left + x_margin, top + y_margin, 1 )
   end
 
+  def show
+    @visible = true
+  end
+
+  def hide
+    @visible = false
+  end
+
+  def inside?( x, y = nil )       # The position can't be inside an invisible button
+    visible && super( x, y )
+  end
 end

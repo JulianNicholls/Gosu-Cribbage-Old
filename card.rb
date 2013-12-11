@@ -40,6 +40,10 @@ module Cribbage
       "#{rank_name.slice(0)}#{suit_name.slice(0)}"
     end
 
+    def display_name
+      "#{rank == 10 ? '10' : rank_name.slice(0)}#{suit_char}"
+    end
+
     def rank_name
       RANKS[@rank - 1]
     end
@@ -86,7 +90,7 @@ module Cribbage
         image = front || @@front_image
         cfont = font  || @@font
         image.draw( left, top, 1 )
-        cfont.draw( "#{rank_name.slice(0)}#{suit_char}", left + 10, top + 10, 1, 1, 1, suit.odd? ? RED_COLOUR : BLACK_COLOUR )
+        cfont.draw( display_name, left + 10, top + 10, 1, 1, 1, suit.odd? ? RED_COLOUR : BLACK_COLOUR )
       end
     end
   end

@@ -123,4 +123,23 @@ describe Cribbage::Card do
     expect( FullPack::SA.suit_char ).to eq "\u2660"
   end
 
+  it "should have a correct display name for all cards" do
+    expect( FullPack::HA.display_name ).to eq "A\u2665"
+    expect( FullPack::H2.display_name ).to eq "2\u2665"
+    expect( FullPack::H3.display_name ).to eq "3\u2665"
+    expect( FullPack::H4.display_name ).to eq "4\u2665"
+    expect( FullPack::H5.display_name ).to eq "5\u2665"
+    expect( FullPack::H6.display_name ).to eq "6\u2665"
+    expect( FullPack::H7.display_name ).to eq "7\u2665"
+    expect( FullPack::H8.display_name ).to eq "8\u2665"
+    expect( FullPack::H9.display_name ).to eq "9\u2665"
+    expect( FullPack::HT.display_name ).to eq "10\u2665"
+    expect( FullPack::HJ.display_name ).to eq "J\u2665"
+    expect( FullPack::HQ.display_name ).to eq "Q\u2665"
+    expect( FullPack::HK.display_name ).to eq "K\u2665"
+
+    expect( FullPack::CT.display_name ).to eq "10\u2663"
+    expect( FullPack::DT.display_name ).to eq "10\u2666"
+    expect( FullPack::ST.display_name ).to eq "10\u2660"
+  end
 end

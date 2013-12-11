@@ -22,10 +22,14 @@ end
 
 
 describe Cribbage::GosuHand do
-  let( :pack ) { Cribbage::Pack.new }
+  let( :pack ) { Cribbage::GosuPack.new }
   let( :hand ) { Cribbage::GosuHand.new pack }
 
   subject { hand }
+
+  it { should respond_to :set_positions }
+  it { should respond_to :draw }
+
 
   it "should deal 6 Gosu cards" do
     expect( hand.cards.length ).to eq 6

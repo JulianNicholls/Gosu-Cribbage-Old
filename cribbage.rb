@@ -66,31 +66,34 @@ class CribbageGame < Gosu::Window
   def update
     return if !@position
 
-    @card_name = nil
-    @score = nil
+    @card_name  = nil # DEBUG
+    @score      = nil # DEBUG
 
-    if @game_phase == CUT_CARD && @pack.inside?( @position )  # && @card_cut.nil?
-      cut_card
-      @card_name = @card_cut.name  # DEBUG
-      @score = Cribbage::Scorer.new( @player_hand, @card_cut ).evaluate # DEBUG
-      @position = nil
-      # @game_phase = PLAY_31
-    elsif @discard_button.inside?( @position )
-      discard_crib_cards
-      @position = nil
-    elsif @game_phase == DISCARDING
-      @position = nil if select_card
+    case @game_phase
+    when CUT_CARD
+      if @pack.inside?( @position )  # && @card_cut.nil?
+        cut_card
+        @card_name = @card_cut.name  # DEBUG
+        @score = Cribbage::Scorer.new( @player_hand, @card_cut ).evaluate # DEBUG
+        @position = nil
+        # @game_phase = PLAY_31
+      end
+
+    when DISCARDING
+      if @discard_button.inside?( @position )
+        discard_crib_cards
+        @position = nil
+      else
+        @position = nil if select_card
+      end
     end
   end
 
   def draw
-    self.draw_quad( 0, 0, BAIZE_COLOUR,
-                    WIDTH-1, 0, BAIZE_COLOUR,
-                    WIDTH-1, HEIGHT-1, BAIZE_COLOUR,
-                    0, HEIGHT-1, BAIZE_COLOUR, 0 )
+    draw_background
 
-    draw_hand( @player_hand, :face_up )
-    draw_hand( @computer_hand, :face_down )
+    @player_hand.draw :face_up
+    @computer_hand.draw :face_down
 
     # Always draw the spare pack, and then the cut card on top if it's set
 
@@ -103,8 +106,11 @@ class CribbageGame < Gosu::Window
     debug_display
   end
 
-  def draw_hand( hand, orient )
-    hand.cards.each { |c| c.draw( orient ) }
+  def draw_background
+    self.draw_quad(
+      0, 0, BAIZE_COLOUR, WIDTH-1, 0, BAIZE_COLOUR,
+      WIDTH-1, HEIGHT-1, BAIZE_COLOUR, 0, HEIGHT-1, BAIZE_COLOUR, 0
+    )
   end
 
   def draw_crib
@@ -146,17 +152,8 @@ class CribbageGame < Gosu::Window
   end
 
   def set_hand_positions
-    pcards = @player_hand.cards.length
-    ccards = @computer_hand.cards.length
-
-    left = PLAYER_LEFT
-
-    [pcards, ccards].max.times do |idx|
-      @player_hand.cards[idx].set_position( left, PLAYER_TOP )     if idx < pcards
-      @computer_hand.cards[idx].set_position( left, COMPUTER_TOP ) if idx < ccards
-
-      left += CARD_WIDTH + CARD_GAP
-    end
+    @player_hand.set_positions( PLAYER_LEFT, PLAYER_TOP, CARD_WIDTH + CARD_GAP )
+    @computer_hand.set_positions( COMPUTER_LEFT, COMPUTER_TOP, CARD_WIDTH + CARD_GAP )
   end
 
   def cut_card

@@ -20,7 +20,7 @@ module Cribbage
 
     SUITS = %w{Hearts Clubs Diamonds Spades}
     RANKS = %w{Ace 2 3 4 5 6 7 8 9 Ten Jack Queen King}
-    SUIT_CHARS = "\u2665\u2663\u2666\u2660"   # Not really usable
+    SUIT_CHARS = "\u2665\u2663\u2666\u2660"   # Use with care, not all fonts have these characters
 
     attr_reader :rank, :suit
 

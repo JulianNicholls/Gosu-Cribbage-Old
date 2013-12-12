@@ -19,7 +19,7 @@ module Cribbage
     end
 
     def evaluate
-      fifteens_score + pairs_score + runs_score+ flush_score + one_for_his_nob
+      fifteens_score + pairs_score + runs_score + flush_score + one_for_his_nob
     end
 
 
@@ -77,7 +77,7 @@ module Cribbage
     end
 
     def one_for_his_nob
-      @hand.cards.reduce( 0 ) { |score, c| (c.rank == Cribbage::Card::JACK && c.suit == @turncard.suit) ? (score + 1) : score }
+      @hand.cards.any? { |c| (c.rank == Cribbage::Card::JACK && c.suit == @turncard.suit) } ? 1 : 0
     end
 
     # Collect the five cards together in rank/value order
@@ -88,9 +88,7 @@ module Cribbage
       @thefive.sort_by! { |c| c.rank }
     end
 
-    # The combos are built in decreasing size order,
-    # i.e. the first one is all 5 cards, followed by the combinations of
-    # 4 cards, and so on
+    # The combos are the combinations of cards in 2s, 3s, and 4s
 
     def build_combos
       @pairs  = @thefive.combination( 2 ).to_a

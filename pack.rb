@@ -8,7 +8,7 @@ module Cribbage
 
     def initialize
       @cards      = Array.new( 52, 1 )
-      @cards_left = 52   # Cards left
+      @cards_left = 52
     end
 
     def deal( klass = Card )

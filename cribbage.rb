@@ -259,8 +259,8 @@ class CribbageGame < Gosu::Window
   end
 
   def setup_for_31
-    @cpu_hand_31    = @cpu_hand.dup
-    @player_hand_31 = @player_hand.dup
+    @cpu_hand_31    = @cpu_hand.clone
+    @player_hand_31 = @player_hand.clone
     @run_cards = []
     @run_num = -1
 
@@ -358,6 +358,7 @@ class CribbageGame < Gosu::Window
         end
 
         start_31_run
+        @game_phase = (PLAYER_31 + CPU_31) - @game_phase
         @waiting = Time.now + 0.5 if @game_phase == CPU_31
       else
         if @game_phase == PLAYER_31

@@ -26,9 +26,13 @@ module Cribbage
 
   class GosuHand < Hand
 
-    def initialize( pack )
-      @cards = Array.new( 6 ) { pack.deal }
+    def initialize( pack, copy = nil )
+      @cards = copy ? copy : Array.new( 6 ) { pack.deal }
       @cards.sort_by! { |c| c.rank }
+    end
+
+    def clone
+      GosuHand.new( nil, self.cards.clone )
     end
 
     def set_positions( left, top, gap )

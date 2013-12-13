@@ -10,7 +10,7 @@ class CribbageGame < Gosu::Window
   DEAL        = 0
   DISCARDING  = 10
   CUT_CARD    = 20
-  PLAY_31     = 30
+  PLAYER_31   = 30
   CPU_31      = 31
   THE_SHOW    = 40
   CRIB_SHOW   = 50
@@ -76,7 +76,7 @@ class CribbageGame < Gosu::Window
   end
 
   def update
-    return if !@position
+    return if !@position && @game_phase != CPU_31
 
     @card_name  = nil # DEBUG
     @score      = nil # DEBUG
@@ -100,9 +100,17 @@ class CribbageGame < Gosu::Window
         @position = nil if select_card
       end
 
-    when PLAY_31
-      @position = nil if player_select_31
+    when PLAYER_31
+      if player_select_31
+        @position = nil
+        set_31_phase
+      end
+
+    when CPU_31
+      cpu_select_31    # It will be possible because it's already been checked
+      set_31_phase
     end
+
   end
 
   def draw
@@ -118,7 +126,7 @@ class CribbageGame < Gosu::Window
     @discard_button.draw
     draw_crib if @show_crib
 
-    draw_31 if @game_phase.between? PLAY_31, CPU_31
+    draw_31 if @game_phase.between? PLAYER_31, CPU_31
     debug_display
   end
 
@@ -132,7 +140,7 @@ class CribbageGame < Gosu::Window
   end
 
   def draw_hands
-    if @game_phase.between? PLAY_31, CPU_31
+    if @game_phase.between? PLAYER_31, CPU_31
       unless @player_hand_31.nil?
         @player_hand_31.draw :face_up
         @cpu_hand_31.draw :peep     # :face_down
@@ -254,7 +262,7 @@ class CribbageGame < Gosu::Window
 
     start_31_run
 
-    @game_phase = PLAY_31
+    @game_phase = PLAYER_31
   end
 
   def start_31_run
@@ -271,7 +279,7 @@ class CribbageGame < Gosu::Window
       c = @player_hand_31.cards[idx]
       if c.inside?( @position ) && @total_31 + c.value <= 31
         @player_hand_31.cards.slice!( idx )
-        add_card_to_run_31 c.dup, :player
+        add_card_to_run_31 c.dup
         return true
       end
 
@@ -281,32 +289,74 @@ class CribbageGame < Gosu::Window
     false
   end
 
-  def add_card_to_run_31 card, player
-    c = card.dup
-    c.set_position( @left_31, @top_31)
+  # Select a 'good' card for the CPU. if it's possible to get to 15 or 31, do that, otherwise
+  # chosse the highest card that can be laid.
+  # In the future, possible pairs / pairs royal will also be considered.
+  # The player's cards will NEVER be taken into consideration!
 
-    @run_cards[@run_num] << c
-    @total_31 += c.value
+  def cpu_select_31
+    idx = 0
+    highest, hidx = 0, 0
 
-    if @total_31 == 15
-      if player == :player
-        @player_score += 2
-      else
-        @cpu_score += 2
+    while idx < @cpu_hand_31.cards.length
+      c = @cpu_hand_31.cards[idx]
+      if @total_31 + c.value == 15 || @total_31 + c.value == 31
+        @cpu_hand_31.cards.slice!( idx )
+        add_card_to_run_31 c.dup
+        return
       end
+
+      highest, hidx = c.value, idx if c.value > highest && @total_31 + c.value < 31
+      idx += 1
     end
 
-    if @total_31 == 31
-      if player == :player
-        @player_score += 2
-      else
-        @cpu_score += 2
-      end
+    the_card = @cpu_hand_31.cards[hidx].dup
+    @cpu_hand_31.cards.slice!( hidx )
+    add_card_to_run_31 the_card
+  end
 
+  def add_card_to_run_31( card )
+    card.set_position( @left_31, @top_31 )
+
+    @run_cards[@run_num] << card
+    @total_31 += card.value
+
+    @player_score += 2 if @game_phase == PLAYER_31 && (@total_31 == 15 || @total_31 == 31)
+    @cpu_score    += 2 if @game_phase == CPU_31    && (@total_31 == 15 || @total_31 == 31)
+
+    if @total_31 == 31
       start_31_run
     else
       @top_31 += 25
       @left_31 += 25
+    end
+  end
+
+  def set_31_phase
+    if @game_phase == PLAYER_31 && @cpu_hand_31.cards.any? { |c| @total_31 + c.value <= 31 }
+      @game_phase = CPU_31
+    elsif @game_phase == CPU_31 && @player_hand_31.cards.any? { |c| @total_31 + c.value <= 31 }
+      @game_phase = PLAYER_31
+    else
+
+    # At this point, we can't swap to the other player because they don't have a card that they can lay.
+    # Can we continue with this run, or at all?
+
+      all_cards = @cpu_hand_31.cards + @player_hand_31.cards
+
+      if all_cards.length > 0
+        if all_cards.any? { |c| @total_31 + c.value <= 31 }
+          return  # Continue with same player
+        elsif @game_phase == PLAYER_31
+          @player_score += 1
+        else
+          @cpu_score += 1
+        end
+
+        start_31_run
+      else
+        @game_phase = THE_SHOW
+      end
     end
   end
 

@@ -6,6 +6,7 @@ module Cribbage
   class Hand
 
     attr_reader :cards
+
     def initialize( pack )
       @cards = Array.new( 6 ) { pack.deal }
       @cards.sort_by! { |c| c.rank }

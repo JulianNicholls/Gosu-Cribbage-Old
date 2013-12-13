@@ -55,7 +55,7 @@ class CribbageGame < Gosu::Window
   SCORE_LEFT = WIDTH - CARD_WIDTH
 
   def initialize
-    super( WIDTH, HEIGHT, false )
+    super( WIDTH, HEIGHT, false, 100 )  # Width x Height, not fullscreen, 100ms between 'update's
 
     self.caption = "Gosu Cribbage"
 
@@ -69,6 +69,7 @@ class CribbageGame < Gosu::Window
     @show_crib = FALSE
     @player_hand_31 = @cpu_hand_31 = nil
     @player_score = @cpu_score = 0
+    @waiting = nil
   end
 
   def needs_cursor?   # Enable the mouse cursor
@@ -77,6 +78,9 @@ class CribbageGame < Gosu::Window
 
   def update
     return if !@position && @game_phase != CPU_31
+
+    return if @waiting && Time.now < @waiting
+    @waiting = nil
 
     @card_name  = nil # DEBUG
     @score      = nil # DEBUG
@@ -334,18 +338,18 @@ class CribbageGame < Gosu::Window
 
   def set_31_phase
     if @game_phase == PLAYER_31 && @cpu_hand_31.cards.any? { |c| @total_31 + c.value <= 31 }
+      @waiting = Time.now + 0.5
       @game_phase = CPU_31
     elsif @game_phase == CPU_31 && @player_hand_31.cards.any? { |c| @total_31 + c.value <= 31 }
       @game_phase = PLAYER_31
-    else
-
-    # At this point, we can't swap to the other player because they don't have a card that they can lay.
-    # Can we continue with this run, or at all?
+    else  # At this point, we can't swap to the other player because they don't have a card that they can lay.
+          # Can we continue with this run, or at all?
 
       all_cards = @cpu_hand_31.cards + @player_hand_31.cards
 
       if all_cards.length > 0
         if all_cards.any? { |c| @total_31 + c.value <= 31 }
+          @waiting = Time.now + 0.5 if @game_phase == CPU_31
           return  # Continue with same player
         elsif @game_phase == PLAYER_31
           @player_score += 1
@@ -354,7 +358,14 @@ class CribbageGame < Gosu::Window
         end
 
         start_31_run
+        @waiting = Time.now + 0.5 if @game_phase == CPU_31
       else
+        if @game_phase == PLAYER_31
+          @player_score += 1
+        else
+          @cpu_score += 1
+        end
+
         @game_phase = THE_SHOW
       end
     end

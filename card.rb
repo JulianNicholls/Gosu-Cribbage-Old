@@ -28,41 +28,23 @@ module Cribbage
       @rank, @suit = rank, suit
     end
 
-    def to_s
-      name
-    end
+    def to_s; name; end
 
-    def name
-      "#{rank_name} of #{suit_name}"
-    end
+    def name;         "#{rank_name} of #{suit_name}";               end
 
-    def short_name
-      "#{rank_name.slice(0)}#{suit_name.slice(0)}"
-    end
+    def short_name;   "#{rank_name.slice(0)}#{suit_name.slice(0)}"; end
 
     def display_name
       "#{rank == 10 ? '10' : rank_name.slice(0)}#{suit_char}"
     end
 
-    def rank_name
-      RANKS[@rank - 1]
-    end
+    def rank_name;    RANKS[@rank - 1];       end
+    def suit_name;    SUITS[@suit - 1];       end
+    def suit_char;    SUIT_CHARS[@suit - 1];  end
 
-    def suit_name
-      SUITS[@suit - 1]
-    end
+    def value;    [rank, 10].min;   end     # Return 10 for 10, J, Q, K
 
-    def suit_char
-      SUIT_CHARS[@suit - 1]
-    end
-
-    def value
-      [rank, 10].min   # Return 10 for 10, J, Q, K
-    end
-
-    def inspect
-      short_name
-    end
+    def inspect;  short_name; end
   end
 
 

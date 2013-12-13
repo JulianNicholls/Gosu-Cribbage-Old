@@ -83,13 +83,16 @@ module Cribbage
     end
 
     def draw( orient = :face_up, front = nil, back = nil, font = nil )
-      if orient == :face_down
+      if orient == :face_down || orient == :peep
         image = back || @@back_image
         image.draw( left, top, 1 )
       else
         image = front || @@front_image
-        cfont = font  || @@font
         image.draw( left, top, 1 )
+      end
+
+      if orient == :face_up || orient == :peep
+        cfont = font  || @@font
         cfont.draw( display_name, left + 10, top + 10, 1, 1, 1, suit.odd? ? RED_COLOUR : BLACK_COLOUR )
       end
     end

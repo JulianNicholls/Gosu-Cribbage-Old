@@ -22,7 +22,7 @@ class CribbageGame < Gosu::Window
   MID_Y   = HEIGHT / 2
 
   BAIZE_COLOUR      = Gosu::Color.new( 0xff007000 )
-  SCORE_TEXT_COLOUR = Gosu::Color.new( 0xffffee00 )
+  SCORE_TEXT_COLOUR = Gosu::Color.new( 0xffffcc00 )
   SCORE_NUM_COLOUR  = Gosu::Color.new( 0xffffff00 )
   WATERMARK_COLOUR  = Gosu::Color.new( 0x20000000 )
   DISCARD_COLOUR    = Gosu::Color.new( 0xff104ec2 )
@@ -48,7 +48,7 @@ class CribbageGame < Gosu::Window
   DISCARD_TOP   = PLAYER_TOP - BUTTON_HEIGHT*2
   DISCARD_LEFT  = CARD_GAP*3
 
-  TOP_31  = COMPUTER_TOP + CARD_HEIGHT + CARD_GAP
+  TOP_31  = COMPUTER_TOP + CARD_HEIGHT + CARD_GAP * 2
   LEFT_31 = CARD_GAP
 
   SCORE_TOP  = CARD_GAP
@@ -68,7 +68,7 @@ class CribbageGame < Gosu::Window
     @game_phase = DISCARDING
     @show_crib = FALSE
     @player_hand_31 = @cpu_hand_31 = nil
-    @player_score = @cpu_score = 100
+    @player_score = @cpu_score = 0
   end
 
   def needs_cursor?   # Enable the mouse cursor
@@ -101,10 +101,7 @@ class CribbageGame < Gosu::Window
       end
 
     when PLAY_31
-      # Blah!
-
-    when CPU_31
-      # Blah!
+      @position = nil if player_select_31
     end
   end
 
@@ -136,7 +133,7 @@ class CribbageGame < Gosu::Window
 
   def draw_hands
     if @game_phase.between? PLAY_31, CPU_31
-      unless @player_31_hand.nil?
+      unless @player_hand_31.nil?
         @player_hand_31.draw :face_up
         @cpu_hand_31.draw :peep     # :face_down
       end
@@ -164,6 +161,10 @@ class CribbageGame < Gosu::Window
   def draw_31
     @score_font.draw( 'Total', LEFT_31, TOP_31 - 20, 1, 1, 1, SCORE_TEXT_COLOUR )
     @score_font.draw( @total_31, LEFT_31 + 50, TOP_31 - 20, 1, 1, 1, SCORE_NUM_COLOUR )
+
+    @run_cards.each do |run|
+      run.each { |c| c.draw :face_up }
+    end
   end
 
   def button_down btn_id
@@ -246,8 +247,8 @@ class CribbageGame < Gosu::Window
   end
 
   def setup_for_31
-    @cpu_hand_31 = cpu_hand.dup
-    @player_hand31 = player_hand.dup
+    @cpu_hand_31    = @cpu_hand.dup
+    @player_hand_31 = @player_hand.dup
     @run_cards = []
     @run_num = -1
 
@@ -263,6 +264,52 @@ class CribbageGame < Gosu::Window
     @top_31   = TOP_31
     @left_31  = LEFT_31 + (CARD_WIDTH+CARD_GAP) * @run_num
   end
+
+  def player_select_31
+    idx = 0
+    while idx < @player_hand_31.cards.length
+      c = @player_hand_31.cards[idx]
+      if c.inside?( @position ) && @total_31 + c.value <= 31
+        @player_hand_31.cards.slice!( idx )
+        add_card_to_run_31 c.dup, :player
+        return true
+      end
+
+      idx += 1
+    end
+
+    false
+  end
+
+  def add_card_to_run_31 card, player
+    c = card.dup
+    c.set_position( @left_31, @top_31)
+
+    @run_cards[@run_num] << c
+    @total_31 += c.value
+
+    if @total_31 == 15
+      if player == :player
+        @player_score += 2
+      else
+        @cpu_score += 2
+      end
+    end
+
+    if @total_31 == 31
+      if player == :player
+        @player_score += 2
+      else
+        @cpu_score += 2
+      end
+
+      start_31_run
+    else
+      @top_31 += 25
+      @left_31 += 25
+    end
+  end
+
   def debug_display
     dbg_str = @game_phase.to_s
 

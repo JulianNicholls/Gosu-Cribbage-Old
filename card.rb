@@ -93,7 +93,7 @@ module Cribbage
 
       if orient == :face_up || orient == :peep
         cfont = font  || @@font
-        cfont.draw( display_name, left + 10, top + 10, 1, 1, 1, suit.odd? ? RED_COLOUR : BLACK_COLOUR )
+        cfont.draw( display_name, left + 5, top + 5, 1, 1, 1, suit.odd? ? RED_COLOUR : BLACK_COLOUR )
       end
     end
   end

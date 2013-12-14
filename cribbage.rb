@@ -27,20 +27,23 @@ module CribbageGame
       reset
     end
 
+
     def reset
       setup_cards
 
-      @selected = []
-      @game_phase = DISCARDING
-      @show_crib = FALSE
-      @crib = []
+      @selected     = []
+      @game_phase   = DISCARDING
+      @show_crib    = FALSE
+      @crib         = []
       @player_score = @cpu_score = 0
-      @delay = nil
+      @delay        = nil
     end
+
 
     def needs_cursor?   # Enable the mouse cursor
       true
     end
+
 
     def update
       return unless @position || @game_phase == PLAY_31
@@ -50,30 +53,34 @@ module CribbageGame
       @score      = nil # DEBUG
 
       case @game_phase
-      when CUT_CARD
-        if @pack.inside?( @position )  # && @card_cut.nil?
-          cut_card
-          @card_name = @card_cut.name  # DEBUG
-          @score = Cribbage::Scorer.new( @player_hand, @card_cut ).evaluate # DEBUG
-          @position = nil
+        when CUT_CARD
+          if @pack.inside?( @position )  # && @card_cut.nil?
+            cut_card
+            @card_name = @card_cut.name  # DEBUG
+            @score = Cribbage::Scorer.new( @player_hand, @card_cut ).evaluate # DEBUG
+            @position = nil
 
-          @play31 = Player31.new( self, @player_hand, @cpu_hand )
-          set_phase PLAY_31
-          @arrow_x, @arrow_y = 1, Player31::TOP + CARD_GAP
-        end
+            @play31 = Player31.new( self, @player_hand, @cpu_hand )
+            set_phase PLAY_31
+            set_arrow( 1, Player31::TOP + CARD_GAP )
+          end
 
-      when DISCARDING
-        if @discard_button.inside?( @position )
-          discard_crib_cards
-          @position = nil
-        else
-          @position = nil if select_card
-        end
+        when DISCARDING
+          if @discard_button.inside?( @position )
+            discard_crib_cards
+            @position = nil
+          else
+            @position = nil if select_card
+          end
 
-      when PLAY_31
-        @position = nil if @play31.update( @position )
+        when PLAY_31
+          @position = nil if @play31.update( @position )
+
+        when THE_SHOW
+          set_arrow( nil )
       end
     end
+
 
     def draw
       draw_background
@@ -95,6 +102,7 @@ module CribbageGame
       debug_display
     end
 
+
     def draw_background
       self.draw_quad(
         0, 0, BAIZE_COLOUR,
@@ -107,6 +115,7 @@ module CribbageGame
       @font.draw( "Cribbage", 80, 220, 0, 1, 1, WATERMARK_COLOUR )
     end
 
+
     def draw_hands
       if @game_phase == PLAY_31
         @play31.draw_hands
@@ -115,6 +124,7 @@ module CribbageGame
         @cpu_hand.draw :peep     # :face_down
       end
     end
+
 
     def draw_scores
       player = 'Player '
@@ -127,9 +137,11 @@ module CribbageGame
       @score_font.draw( @player_score, SCORE_LEFT + width, SCORE_TOP + height, 1, 1, 1, SCORE_NUM_COLOUR )
     end
 
+
     def draw_crib
       @card_back_image.draw( CRIB_LEFT, CRIB_TOP, 1 )
     end
+
 
     def button_down btn_id
       case btn_id
@@ -141,10 +153,12 @@ module CribbageGame
       end
     end
 
+
     def load_images
       @card_back_image  = Gosu::Image.new( self, 'media/CardBack.png', true )
       @card_front_image = Gosu::Image.new( self, 'media/CardFront.png', true )
     end
+
 
     def load_fonts
       @font        = Gosu::Font.new( self, 'Century Schoolbook L', 180 )
@@ -152,6 +166,7 @@ module CribbageGame
       @card_font   = Gosu::Font.new( self, 'Arial', 28 )
       @button_font = Gosu::Font.new( self, 'Arial', 24 )
     end
+
 
     def setup_cards
       Cribbage::GosuCard.set_display( @card_front_image, @card_back_image, @card_font )
@@ -168,15 +183,18 @@ module CribbageGame
       @card_cut = nil
     end
 
+
     def set_hand_positions
       @player_hand.set_positions( PLAYER_LEFT, PLAYER_TOP, CARD_WIDTH + CARD_GAP )
       @cpu_hand.set_positions( COMPUTER_LEFT, COMPUTER_TOP, CARD_WIDTH + CARD_GAP )
     end
 
+
     def cut_card
        @card_cut = @pack.cut
        @card_cut.set_position( PACK_LEFT + 2, PACK_TOP + 2 )
     end
+
 
     def select_card
       found = false
@@ -200,6 +218,7 @@ module CribbageGame
       found
     end
 
+
     def discard_crib_cards
       @crib << @player_hand.cards[@selected[0]]
       @crib << @player_hand.cards[@selected[1]]
@@ -222,12 +241,14 @@ module CribbageGame
       set_hand_positions
 
       set_phase CUT_CARD
-      @arrow_x, @arrow_y = PACK_LEFT - (CARD_GAP * 2), PACK_TOP + CARD_GAP
+      set_arrow( PACK_LEFT - (CARD_GAP * 2), PACK_TOP + CARD_GAP )
     end
+
 
     def set_delay length
       @delay = Time.now + length
     end
+
 
     def delaying
       return true if @delay && Time.now < @delay
@@ -236,13 +257,21 @@ module CribbageGame
       false
     end
 
-    def update_player_score by
+
+    def update_player_score( by )
       @player_score += by
     end
 
-    def update_cpu_score by
+
+    def update_cpu_score( by )
       @cpu_score += by
     end
+
+
+    def set_arrow( x, y = nil )
+      @arrow_x, @arrow_y = x, y
+    end
+
 
     def draw_arrow
       return if !@arrow_x
@@ -255,9 +284,13 @@ module CribbageGame
       )
     end
 
+
     def set_phase phase
       @game_phase = phase
     end
+
+
+private
 
     def debug_display
       dbg_str = @game_phase.to_s
@@ -271,6 +304,8 @@ module CribbageGame
     end
   end
 end
+
+
 
 window = CribbageGame::Engine.new
 window.show

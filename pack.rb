@@ -2,6 +2,8 @@
 
 require './region'
 
+require './constants'
+
 module Cribbage
 
   class Pack
@@ -42,6 +44,7 @@ module Cribbage
   class GosuPack < Pack
 
     include Region
+    include CribbageGame::Constants
 
     def initialize
       super
@@ -60,7 +63,7 @@ module Cribbage
     end
 
     def set_position( left, top )
-      set_area( left, top, CribbageGame::CARD_WIDTH, CribbageGame::CARD_HEIGHT )
+      set_area( left, top, CARD_WIDTH, CARD_HEIGHT )
     end
 
     def draw

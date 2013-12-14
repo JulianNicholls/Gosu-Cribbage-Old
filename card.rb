@@ -1,5 +1,7 @@
 require './region'
 
+require './constants'
+
 module Cribbage
   # class to hold a card. both rank and suit are 1-based.
 
@@ -51,6 +53,7 @@ module Cribbage
   class GosuCard < Card
 
     include Region
+    include CribbageGame::Constants
 
     RED_COLOUR   = 0xffa00000
     BLACK_COLOUR = 0xff000000
@@ -61,7 +64,7 @@ module Cribbage
     end
 
     def set_position( pos_left, pos_top )
-      set_area( pos_left, pos_top, CribbageGame::CARD_WIDTH, CribbageGame::CARD_HEIGHT )
+      set_area( pos_left, pos_top, CARD_WIDTH, CARD_HEIGHT )
     end
 
     def draw( orient = :face_up, front = nil, back = nil, font = nil )

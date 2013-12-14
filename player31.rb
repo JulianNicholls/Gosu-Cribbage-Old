@@ -79,9 +79,11 @@ class Player31
   end
 
 
-  # Select a 'good' card for the CPU. if it's possible to get to 15 or 31, do that, otherwise
+  # Select a 'good' card for the CPU.
+  #   If it's possible to get to 15 or 31, do that, or
+  #   If we can form a pair, otherwise
   # choose the highest card that can be laid.
-  # In the future, possible pairs / pairs royal and runs will also be considered.
+  # In the future, runs will also be considered.
   # The player's cards will NEVER be taken into consideration!
 
   def cpu_select
@@ -91,7 +93,8 @@ class Player31
     while idx < @cpu_hand.cards.length
       c = @cpu_hand.cards[idx]
 
-      if @total + c.value == 15 || @total + c.value == 31
+      if @total + c.value == 15 || @total + c.value == 31 ||
+         (@run_cards[@run_num].length > 0 && c.rank == @run_cards[@run_num][-1].rank)
         @cpu_hand.cards.slice!( idx )
         add_card_to_run c.dup
         return
@@ -113,8 +116,7 @@ class Player31
     @run_cards[@run_num] << card
     @total += card.value
 
-    @engine.update_player_score( 2 ) if @turn == :player && (@total == 15 || @total == 31)
-    @engine.update_cpu_score( 2 )    if @turn == :cpu    && (@total == 15 || @total == 31)
+    score_last_cards
 
     if @total == 31
       start_run
@@ -123,6 +125,33 @@ class Player31
       @left += 25
     end
   end
+
+
+  def score_last_cards
+    this_run = @run_cards[@run_num]
+    top = this_run[-1]    # Last card played
+
+    score_current_player( 2 ) if @total == 15 || @total == 31
+
+    if this_run.length >= 4
+      score_current_player( 6 ) if this_run[-4..-2].all? { |c| c.rank == top.rank }
+    end
+
+    if this_run.length >= 3
+      score_current_player( 4 ) if this_run[-3..-2].all? { |c| c.rank == top.rank }
+    end
+
+    if this_run.length >= 2
+      score_current_player( 2 ) if this_run[-2].rank == top.rank
+    end
+  end
+
+
+  def score_current_player by
+    @engine.update_player_score( by ) if @turn == :player
+    @engine.update_cpu_score( by )    if @turn == :cpu
+  end
+
 
   def set_turn
     if @turn == :player && @cpu_hand.cards.any? { |c| @total + c.value <= 31 }
@@ -140,10 +169,8 @@ class Player31
         if all_cards.any? { |c| @total + c.value <= 31 }
           @engine.set_delay( 0.5 ) if @turn == :cpu
           return  # Continue with same player
-        elsif @turn == :player
-          @engine.update_player_score 1
         else
-          @engine.updatecpu_score 1
+          score_current_player 1
         end
 
         # There was no way to continue with the previous run, start a new one with
@@ -157,11 +184,7 @@ class Player31
           @turn = :player
         end
       else  # No cards left
-        if @turn == :player
-          @engine.update_player_score 1
-        else
-          @engine.update_cpu_score 1
-        end
+        score_current_player 1
 
         @engine.set_phase THE_SHOW
         @engine.set_delay 0.5

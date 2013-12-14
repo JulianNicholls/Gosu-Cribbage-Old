@@ -8,6 +8,7 @@ require './player31'
 
 require './constants'
 
+
 module CribbageGame
   class Engine < Gosu::Window
 
@@ -112,7 +113,23 @@ module CribbageGame
         0
       )
 
-      @font.draw( "Cribbage", 80, 220, 0, 1, 1, WATERMARK_COLOUR )
+      self.draw_quad(
+        SCORE_LEFT - CARD_GAP, 1, SCORE_TEXT_COLOUR,
+        WIDTH - 2, 1, SCORE_TEXT_COLOUR,
+        WIDTH - 2, 65, SCORE_TEXT_COLOUR,
+        SCORE_LEFT - CARD_GAP, 65, SCORE_TEXT_COLOUR,
+        0
+      )
+
+      self.draw_quad(
+        SCORE_LEFT - CARD_GAP + 1, 2, SCORE_BKGR_COLOUR,
+        WIDTH - 3, 2, SCORE_BKGR_COLOUR,
+        WIDTH - 3, 64, SCORE_BKGR_COLOUR,
+        SCORE_LEFT - CARD_GAP + 1, 64, SCORE_BKGR_COLOUR,
+        0
+      )
+
+      @font.draw( "The Julio", 60, 220, 0, 1, 1, WATERMARK_COLOUR )
     end
 
 

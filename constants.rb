@@ -14,9 +14,12 @@ module CribbageGame
     MID_Y   = HEIGHT / 2
 
     BAIZE_COLOUR      = Gosu::Color.new( 0xff007000 )
+    WATERMARK_COLOUR  = Gosu::Color.new( 0x20000000 )
+
+    SCORE_BKGR_COLOUR = Gosu::Color.new( 0xff005000 )
     SCORE_TEXT_COLOUR = Gosu::Color.new( 0xffffcc00 )
     SCORE_NUM_COLOUR  = Gosu::Color.new( 0xffffff00 )
-    WATERMARK_COLOUR  = Gosu::Color.new( 0x20000000 )
+
     ARROW_COLOUR      = Gosu::Color.new( 0xc0ffcc00 )
     DISCARD_COLOUR    = Gosu::Color.new( 0xff104ec2 )
 

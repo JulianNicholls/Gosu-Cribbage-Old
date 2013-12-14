@@ -25,6 +25,7 @@ class CribbageGame < Gosu::Window
   SCORE_TEXT_COLOUR = Gosu::Color.new( 0xffffcc00 )
   SCORE_NUM_COLOUR  = Gosu::Color.new( 0xffffff00 )
   WATERMARK_COLOUR  = Gosu::Color.new( 0x20000000 )
+  ARROW_COLOUR      = Gosu::Color.new( 0xc0ffcc00 )
   DISCARD_COLOUR    = Gosu::Color.new( 0xff104ec2 )
 
   CARD_HEIGHT = 150
@@ -61,15 +62,21 @@ class CribbageGame < Gosu::Window
 
     load_images
     load_fonts
+    @discard_button = Button.new( self, 'Discard', @button_font, DISCARD_COLOUR, DISCARD_LEFT, DISCARD_TOP )
+
+    reset
+  end
+
+  def reset
     setup_cards
 
-    @discard_button = Button.new( self, 'Discard', @button_font, DISCARD_COLOUR, DISCARD_LEFT, DISCARD_TOP )
     @selected = []
     @game_phase = DISCARDING
     @show_crib = FALSE
+    @crib = []
     @player_hand_31 = @cpu_hand_31 = nil
     @player_score = @cpu_score = 0
-    @waiting = nil
+    @delay = nil
   end
 
   def needs_cursor?   # Enable the mouse cursor
@@ -77,10 +84,8 @@ class CribbageGame < Gosu::Window
   end
 
   def update
-    return if !@position && @game_phase != CPU_31
-
-    return if @waiting && Time.now < @waiting
-    @waiting = nil
+    return unless @position || @game_phase == CPU_31
+    return if delaying
 
     @card_name  = nil # DEBUG
     @score      = nil # DEBUG
@@ -94,6 +99,7 @@ class CribbageGame < Gosu::Window
         @position = nil
 
         setup_for_31
+        @arrow_x, @arrow_y = 1, TOP_31 + CARD_GAP
       end
 
     when DISCARDING
@@ -131,16 +137,22 @@ class CribbageGame < Gosu::Window
     draw_crib if @show_crib
 
     draw_31 if @game_phase.between? PLAYER_31, CPU_31
+
+    draw_arrow
+
     debug_display
   end
 
   def draw_background
     self.draw_quad(
-      0, 0, BAIZE_COLOUR, WIDTH-1, 0, BAIZE_COLOUR,
-      WIDTH-1, HEIGHT-1, BAIZE_COLOUR, 0, HEIGHT-1, BAIZE_COLOUR, 0
+      0, 0, BAIZE_COLOUR,
+      WIDTH-1, 0, BAIZE_COLOUR,
+      WIDTH-1, HEIGHT-1, BAIZE_COLOUR,
+      0, HEIGHT-1, BAIZE_COLOUR,
+      0
     )
 
-    @font.draw( "Cribbage", 80, 230, 0, 1, 1, WATERMARK_COLOUR )
+    @font.draw( "Cribbage", 80, 220, 0, 1, 1, WATERMARK_COLOUR )
   end
 
   def draw_hands
@@ -171,8 +183,8 @@ class CribbageGame < Gosu::Window
   end
 
   def draw_31
-    @score_font.draw( 'Total', LEFT_31, TOP_31 - 20, 1, 1, 1, SCORE_TEXT_COLOUR )
-    @score_font.draw( @total_31, LEFT_31 + 50, TOP_31 - 20, 1, 1, 1, SCORE_NUM_COLOUR )
+    @score_font.draw( 'Total', LEFT_31 + (CARD_WIDTH+CARD_GAP) * @run_num, TOP_31 - 20, 1, 1, 1, SCORE_TEXT_COLOUR )
+    @score_font.draw( @total_31, LEFT_31 + (CARD_WIDTH+CARD_GAP) * @run_num + 50, TOP_31 - 20, 1, 1, 1, SCORE_NUM_COLOUR )
 
     @run_cards.each do |run|
       run.each { |c| c.draw :face_up }
@@ -184,6 +196,8 @@ class CribbageGame < Gosu::Window
       when Gosu::KbEscape   then  close
 
       when Gosu::MsLeft     then  @position = [mouse_x, mouse_y]
+
+      when Gosu::KbR        then  reset
     end
   end
 
@@ -247,15 +261,28 @@ class CribbageGame < Gosu::Window
   end
 
   def discard_crib_cards
+    @crib << @player_hand.cards[@selected[0]]
+    @crib << @player_hand.cards[@selected[1]]
     @player_hand.discard( *@selected )
-    @cpu_hand.discard( rand( 0..5 ), rand( 0..5 ) )
+
+    # THIS IS ALL TEMPORARY
+    s1, s2 = rand( 0..5 ), rand( 0..5 )
+    s2 = ((s1 + 1) % 6) if s1 == s2
+
+    @crib << @cpu_hand.cards[s1]
+    @crib << @cpu_hand.cards[s2]
+
+    @cpu_hand.discard( s1, s2 )
+    # TO HERE
 
     @selected = []
     @discard_button.hide()
-    @game_phase = CUT_CARD
     @show_crib = true
 
     set_hand_positions
+
+    @game_phase = CUT_CARD
+    @arrow_x, @arrow_y = PACK_LEFT - (CARD_GAP * 2), PACK_TOP + CARD_GAP
   end
 
   def setup_for_31
@@ -325,8 +352,8 @@ class CribbageGame < Gosu::Window
     @run_cards[@run_num] << card
     @total_31 += card.value
 
-    @player_score += 2 if @game_phase == PLAYER_31 && (@total_31 == 15 || @total_31 == 31)
-    @cpu_score    += 2 if @game_phase == CPU_31    && (@total_31 == 15 || @total_31 == 31)
+    update_player_score( 2 ) if @game_phase == PLAYER_31 && (@total_31 == 15 || @total_31 == 31)
+    update_cpu_score( 2 )    if @game_phase == CPU_31    && (@total_31 == 15 || @total_31 == 31)
 
     if @total_31 == 31
       start_31_run
@@ -338,7 +365,7 @@ class CribbageGame < Gosu::Window
 
   def set_31_phase
     if @game_phase == PLAYER_31 && @cpu_hand_31.cards.any? { |c| @total_31 + c.value <= 31 }
-      @waiting = Time.now + 0.5
+      set_delay 0.5
       @game_phase = CPU_31
     elsif @game_phase == CPU_31 && @player_hand_31.cards.any? { |c| @total_31 + c.value <= 31 }
       @game_phase = PLAYER_31
@@ -349,28 +376,60 @@ class CribbageGame < Gosu::Window
 
       if all_cards.length > 0
         if all_cards.any? { |c| @total_31 + c.value <= 31 }
-          @waiting = Time.now + 0.5 if @game_phase == CPU_31
+          set_delay( 0.5 ) if @game_phase == CPU_31
           return  # Continue with same player
         elsif @game_phase == PLAYER_31
-          @player_score += 1
+          update_player_score 1
         else
-          @cpu_score += 1
+          update_cpu_score 1
         end
 
         start_31_run
         @game_phase = (PLAYER_31 + CPU_31) - @game_phase
-        @waiting = Time.now + 0.5 if @game_phase == CPU_31
+        set_delay( 0.5 ) if @game_phase == CPU_31
       else
         if @game_phase == PLAYER_31
-          @player_score += 1
+          update_player_score 1
         else
-          @cpu_score += 1
+          update_cpu_score 1
         end
 
         @game_phase = THE_SHOW
+        set_delay 0.5
       end
     end
   end
+
+  def set_delay length
+    @delay = Time.now + length
+  end
+
+  def delaying
+    return true if @delay && Time.now < @delay
+
+    @delay = nil
+    false
+  end
+
+  def update_player_score by
+    @player_score += by
+  end
+
+  def update_cpu_score by
+    @cpu_score += by
+  end
+
+  def draw_arrow
+    return if !@arrow_x
+
+    self.draw_triangle(
+      @arrow_x, @arrow_y - CARD_GAP, ARROW_COLOUR,
+      @arrow_x + CARD_GAP * 2, @arrow_y, ARROW_COLOUR,
+      @arrow_x, @arrow_y + CARD_GAP, ARROW_COLOUR,
+      2
+    )
+  end
+
 
   def debug_display
     dbg_str = @game_phase.to_s

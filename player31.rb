@@ -52,7 +52,7 @@ class Player31
 
 
   def start_run
-    @total   = 0
+    @total    = 0
     @run_num += 1
     @run_cards[@run_num] = []
 
@@ -61,18 +61,12 @@ class Player31
 
 
   def player_select position
-    idx = 0
-
-    while idx < @player_hand.cards.length
-      c = @player_hand.cards[idx]
-
+    @player_hand.cards.each_with_index do |c, idx|
       if c.inside?( position ) && @total + c.value <= 31
         @player_hand.cards.slice!( idx )
         add_card_to_run c.dup
         return true
       end
-
-      idx += 1
     end
 
     false
@@ -82,17 +76,14 @@ class Player31
   # Select a 'good' card for the CPU.
   #   If it's possible to get to 15 or 31, do that, or
   #   If we can form a pair, otherwise
-  # choose the highest card that can be laid.
+  #   Choose the highest card that can be laid.
   # In the future, runs will also be considered.
   # The player's cards will NEVER be taken into consideration!
 
   def cpu_select
-    idx = 0
     highest, hidx = 0, 0
 
-    while idx < @cpu_hand.cards.length
-      c = @cpu_hand.cards[idx]
-
+    @cpu_hand.cards.each_with_index do |c, idx|
       if @total + c.value == 15 || @total + c.value == 31 ||
          (@run_cards[@run_num].length > 0 && c.rank == @run_cards[@run_num][-1].rank)
         @cpu_hand.cards.slice!( idx )
@@ -101,7 +92,6 @@ class Player31
       end
 
       highest, hidx = c.value, idx if c.value > highest && @total + c.value < 31
-      idx += 1
     end
 
     the_card = @cpu_hand.cards[hidx].dup

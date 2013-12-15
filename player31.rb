@@ -64,7 +64,7 @@ class Player31
     @player_hand.cards.each_with_index do |c, idx|
       if c.inside?( position ) && @total + c.value <= 31
         @player_hand.cards.slice!( idx )
-        acc_card_to_set c.dup
+        add_card_to_set c.dup
         return true
       end
     end
@@ -87,7 +87,7 @@ class Player31
       if @total + c.value == 15 || @total + c.value == 31 ||
          (@card_sets[@cur_set].length > 0 && c.rank == @card_sets[@cur_set][-1].rank)
         @cpu_hand.cards.slice!( idx )
-        acc_card_to_set c.dup
+        add_card_to_set c.dup
         return
       end
 
@@ -96,11 +96,11 @@ class Player31
 
     the_card = @cpu_hand.cards[hidx].dup
     @cpu_hand.cards.slice!( hidx )
-    acc_card_to_set the_card
+    add_card_to_set the_card
   end
 
 
-  def acc_card_to_set( card )
+  def add_card_to_set( card )
     card.set_position( @left, @top )
 
     @card_sets[@cur_set] << card
@@ -111,31 +111,42 @@ class Player31
     if @total == 31
       start_set
     else
-      @top += 25
+      @top  += 25
       @left += 25
     end
   end
 
 
   def score_last_cards
-    this_set = @card_sets[@cur_set]
-    top = this_set[-1]    # Last card played
+    this_set  = @card_sets[@cur_set]
+    top       = this_set[-1]    # Last card played
 
     score_current_player( 2 ) if @total == 15 || @total == 31
 
-    if this_set.length >= 4
-      score_current_player( 6 ) if this_set[-4..-2].all? { |c| c.rank == top.rank }
-    end
+    score_current_player( 6 ) if this_set.length >= 4 && this_set[-4..-2].all? { |c| c.rank == top.rank }
 
     if this_set.length >= 3
       score_current_player( 4 ) if this_set[-3..-2].all? { |c| c.rank == top.rank }
+      score_runs
     end
 
-    if this_set.length >= 2
-      score_current_player( 2 ) if this_set[-2].rank == top.rank
+    score_current_player( 2 ) if this_set.length >= 2 && this_set[-2].rank == top.rank
+  end
+
+  def score_runs
+    this_set = @card_sets[@cur_set]
+
+    this_set.length.downto(3) do |n|
+      if run?( this_set[-n..-1].sort_by { |c| c.rank } )
+        score_current_player n
+        return
+      end
     end
   end
 
+  def run?( cards )
+    (1..cards.size-1).all? { |idx| cards[idx].rank == cards[idx-1].rank + 1 }
+  end
 
   # Attempt to swap to the other player
 

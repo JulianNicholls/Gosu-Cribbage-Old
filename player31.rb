@@ -148,8 +148,7 @@ class Player31
 
 
   def score_current_player by
-    @engine.update_player_score( by ) if @turn == :player
-    @engine.update_cpu_score( by )    if @turn == :cpu
+    @engine.scores[@turn] += by
   end
 
 

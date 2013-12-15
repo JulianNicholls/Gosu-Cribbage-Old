@@ -20,7 +20,7 @@ module CribbageGame
     SCORE_TEXT_COLOUR = Gosu::Color.new( 0xffffcc00 )
     SCORE_NUM_COLOUR  = Gosu::Color.new( 0xffffff00 )
 
-    ARROW_COLOUR      = Gosu::Color.new( 0xc0ffcc00 )
+    ARROW_COLOUR      = Gosu::Color.new( 0xe0ffcc00 )
     DISCARD_COLOUR    = Gosu::Color.new( 0xff104ec2 )
 
     CARD_HEIGHT = 150

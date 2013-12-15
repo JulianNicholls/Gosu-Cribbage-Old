@@ -15,6 +15,7 @@ module CribbageGame
     include Constants
 
     attr_reader :score_font
+    attr_accessor :scores
 
     def initialize
       super( WIDTH, HEIGHT, false, 100 )  # Width x Height, not fullscreen, 100ms between 'update's
@@ -36,7 +37,7 @@ module CribbageGame
       @game_phase   = DISCARDING
       @show_crib    = FALSE
       @crib         = []
-      @player_score = @cpu_score = 0
+      @scores       = { player: 0, cpu: 0 }
       @delay        = nil
     end
 
@@ -50,15 +51,14 @@ module CribbageGame
       return unless @position || @game_phase == PLAY_31
       return if delaying
 
-      @card_name  = nil # DEBUG
-      @score      = nil # DEBUG
+      @card_name, @dbg_score  = nil, nil  # DEBUG
 
       case @game_phase
         when CUT_CARD
           if @pack.inside?( @position )  # && @card_cut.nil?
             cut_card
             @card_name = @card_cut.name  # DEBUG
-            @score = Cribbage::Scorer.new( @player_hand, @card_cut ).evaluate # DEBUG
+            @dbg_score = Cribbage::Scorer.new( @player_hand, @card_cut ).evaluate # DEBUG
             @position = nil
 
             @play31 = Player31.new( self, @player_hand, @cpu_hand )
@@ -149,9 +149,9 @@ module CribbageGame
       height = @score_font.height
 
       @score_font.draw( "CPU", SCORE_LEFT, SCORE_TOP, 1, 1, 1, SCORE_TEXT_COLOUR )
-      @score_font.draw( @cpu_score.to_s, SCORE_LEFT + width, SCORE_TOP, 1, 1, 1, SCORE_NUM_COLOUR )
+      @score_font.draw( @scores[:cpu], SCORE_LEFT + width, SCORE_TOP, 1, 1, 1, SCORE_NUM_COLOUR )
       @score_font.draw( player, SCORE_LEFT, SCORE_TOP + height, 1, 1, 1, SCORE_TEXT_COLOUR )
-      @score_font.draw( @player_score, SCORE_LEFT + width, SCORE_TOP + height, 1, 1, 1, SCORE_NUM_COLOUR )
+      @score_font.draw( @scores[:player], SCORE_LEFT + width, SCORE_TOP + height, 1, 1, 1, SCORE_NUM_COLOUR )
     end
 
 
@@ -174,6 +174,18 @@ module CribbageGame
     def load_images
       @card_back_image  = Gosu::Image.new( self, 'media/CardBack.png', true )
       @card_front_image = Gosu::Image.new( self, 'media/CardFront.png', true )
+    end
+
+
+    def draw_arrow
+      return if !@arrow_x
+
+      self.draw_triangle(
+        @arrow_x, @arrow_y - CARD_GAP, ARROW_COLOUR,
+        @arrow_x + CARD_GAP * 2, @arrow_y, ARROW_COLOUR,
+        @arrow_x, @arrow_y + CARD_GAP, ARROW_COLOUR,
+        2
+      )
     end
 
 
@@ -275,30 +287,8 @@ module CribbageGame
     end
 
 
-    def update_player_score( by )
-      @player_score += by
-    end
-
-
-    def update_cpu_score( by )
-      @cpu_score += by
-    end
-
-
     def set_arrow( x, y = nil )
       @arrow_x, @arrow_y = x, y
-    end
-
-
-    def draw_arrow
-      return if !@arrow_x
-
-      self.draw_triangle(
-        @arrow_x, @arrow_y - CARD_GAP, ARROW_COLOUR,
-        @arrow_x + CARD_GAP * 2, @arrow_y, ARROW_COLOUR,
-        @arrow_x, @arrow_y + CARD_GAP, ARROW_COLOUR,
-        2
-      )
     end
 
 
@@ -312,10 +302,10 @@ private
     def debug_display
       dbg_str = @game_phase.to_s
 
-      dbg_str += " - Selected: #{@selected}" if !@selected.empty? || @game_phase == DISCARDING
-      dbg_str += " - #{@position}"        if @position
-      dbg_str += " - #{@card_name}"       if @card_name
-      dbg_str += " - Score: #{@score}"    if @score
+      dbg_str += " - Selected: #{@selected}"  if !@selected.empty? || @game_phase == DISCARDING
+      dbg_str += " - #{@position}"            if @position
+      dbg_str += " - #{@card_name}"           if @card_name
+      dbg_str += " - Score: #{@dbg_score}"    if @dbg_score
 
       @button_font.draw( dbg_str, CARD_GAP, MID_Y, 10, 1, 1, 0x80000000 ) unless dbg_str == ''
     end

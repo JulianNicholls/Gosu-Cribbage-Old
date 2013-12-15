@@ -55,7 +55,7 @@ module CribbageGame
 
       case @game_phase
         when CUT_CARD
-          if @pack.inside?( @position )  # && @card_cut.nil?
+          if @pack.inside?( @position )
             cut_card
             @card_name = @card_cut.name  # DEBUG
             @dbg_score = Cribbage::Scorer.new( @player_hand, @card_cut ).evaluate # DEBUG
@@ -105,7 +105,7 @@ module CribbageGame
 
 
     def draw_background
-      self.draw_quad(
+      self.draw_quad(                 # Baize
         0, 0, BAIZE_COLOUR,
         WIDTH-1, 0, BAIZE_COLOUR,
         WIDTH-1, HEIGHT-1, BAIZE_COLOUR,
@@ -113,7 +113,7 @@ module CribbageGame
         0
       )
 
-      self.draw_quad(
+      self.draw_quad(                 # Score Edge
         SCORE_LEFT - CARD_GAP, 1, SCORE_TEXT_COLOUR,
         WIDTH - 2, 1, SCORE_TEXT_COLOUR,
         WIDTH - 2, 65, SCORE_TEXT_COLOUR,
@@ -121,7 +121,7 @@ module CribbageGame
         0
       )
 
-      self.draw_quad(
+      self.draw_quad(                 # Score Background
         SCORE_LEFT - CARD_GAP + 1, 2, SCORE_BKGR_COLOUR,
         WIDTH - 3, 2, SCORE_BKGR_COLOUR,
         WIDTH - 3, 64, SCORE_BKGR_COLOUR,
@@ -163,10 +163,9 @@ module CribbageGame
     def button_down btn_id
       case btn_id
         when Gosu::KbEscape   then  close
+        when Gosu::KbR        then  reset
 
         when Gosu::MsLeft     then  @position = [mouse_x, mouse_y]
-
-        when Gosu::KbR        then  reset
       end
     end
 
@@ -269,7 +268,7 @@ module CribbageGame
 
       set_hand_positions
 
-      set_phase CUT_CARD
+      set_phase( CUT_CARD )
       set_arrow( PACK_LEFT - (CARD_GAP * 2), PACK_TOP + CARD_GAP )
     end
 

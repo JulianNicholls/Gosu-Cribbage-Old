@@ -11,12 +11,12 @@ class Player31
   def initialize( engine, p_hand, c_hand, start_with = :player )
     @engine = engine
     @player_hand, @cpu_hand = p_hand.clone, c_hand.clone
-    @turn = start_with
+    @turn   = start_with
 
-    @run_cards = []
-    @run_num   = -1
+    @card_sets = []
+    @cur_set   = -1
 
-    start_run
+    start_set
   end
 
   def update( position )
@@ -36,10 +36,10 @@ class Player31
   end
 
   def draw
-    @engine.score_font.draw( 'Total', LEFT + (CARD_WIDTH + CARD_GAP) * @run_num, TOP - 20, 1, 1, 1, SCORE_TEXT_COLOUR )
-    @engine.score_font.draw( @total,  LEFT + (CARD_WIDTH + CARD_GAP) * @run_num + 50, TOP - 20, 1, 1, 1, SCORE_NUM_COLOUR )
+    @engine.score_font.draw( 'Total', LEFT + (CARD_WIDTH + CARD_GAP) * @cur_set, TOP - 20, 1, 1, 1, SCORE_TEXT_COLOUR )
+    @engine.score_font.draw( @total,  LEFT + (CARD_WIDTH + CARD_GAP) * @cur_set + 50, TOP - 20, 1, 1, 1, SCORE_NUM_COLOUR )
 
-    @run_cards.each do |run|
+    @card_sets.each do |run|
       run.each { |c| c.draw :face_up }
     end
   end
@@ -51,12 +51,12 @@ class Player31
   end
 
 
-  def start_run
+  def start_set
     @total    = 0
-    @run_num += 1
-    @run_cards[@run_num] = []
+    @cur_set += 1
+    @card_sets[@cur_set] = []
 
-    @top, @left  = TOP, LEFT + (CARD_WIDTH + CARD_GAP) * @run_num
+    @top, @left  = TOP, LEFT + (CARD_WIDTH + CARD_GAP) * @cur_set
   end
 
 
@@ -64,7 +64,7 @@ class Player31
     @player_hand.cards.each_with_index do |c, idx|
       if c.inside?( position ) && @total + c.value <= 31
         @player_hand.cards.slice!( idx )
-        add_card_to_run c.dup
+        acc_card_to_set c.dup
         return true
       end
     end
@@ -85,9 +85,9 @@ class Player31
 
     @cpu_hand.cards.each_with_index do |c, idx|
       if @total + c.value == 15 || @total + c.value == 31 ||
-         (@run_cards[@run_num].length > 0 && c.rank == @run_cards[@run_num][-1].rank)
+         (@card_sets[@cur_set].length > 0 && c.rank == @card_sets[@cur_set][-1].rank)
         @cpu_hand.cards.slice!( idx )
-        add_card_to_run c.dup
+        acc_card_to_set c.dup
         return
       end
 
@@ -96,20 +96,20 @@ class Player31
 
     the_card = @cpu_hand.cards[hidx].dup
     @cpu_hand.cards.slice!( hidx )
-    add_card_to_run the_card
+    acc_card_to_set the_card
   end
 
 
-  def add_card_to_run( card )
+  def acc_card_to_set( card )
     card.set_position( @left, @top )
 
-    @run_cards[@run_num] << card
+    @card_sets[@cur_set] << card
     @total += card.value
 
     score_last_cards
 
     if @total == 31
-      start_run
+      start_set
     else
       @top += 25
       @left += 25
@@ -118,29 +118,26 @@ class Player31
 
 
   def score_last_cards
-    this_run = @run_cards[@run_num]
-    top = this_run[-1]    # Last card played
+    this_set = @card_sets[@cur_set]
+    top = this_set[-1]    # Last card played
 
     score_current_player( 2 ) if @total == 15 || @total == 31
 
-    if this_run.length >= 4
-      score_current_player( 6 ) if this_run[-4..-2].all? { |c| c.rank == top.rank }
+    if this_set.length >= 4
+      score_current_player( 6 ) if this_set[-4..-2].all? { |c| c.rank == top.rank }
     end
 
-    if this_run.length >= 3
-      score_current_player( 4 ) if this_run[-3..-2].all? { |c| c.rank == top.rank }
+    if this_set.length >= 3
+      score_current_player( 4 ) if this_set[-3..-2].all? { |c| c.rank == top.rank }
     end
 
-    if this_run.length >= 2
-      score_current_player( 2 ) if this_run[-2].rank == top.rank
+    if this_set.length >= 2
+      score_current_player( 2 ) if this_set[-2].rank == top.rank
     end
   end
 
 
-  def score_current_player by
-    @engine.scores[@turn] += by
-  end
-
+  # Attempt to swap to the other player
 
   def set_turn
     if @turn == :player && @cpu_hand.cards.any? { |c| @total + c.value <= 31 }
@@ -148,37 +145,49 @@ class Player31
       @turn = :cpu
     elsif @turn == :cpu && @player_hand.cards.any? { |c| @total + c.value <= 31 }
       @turn = :player
-    else  # At this point, we can't swap to the other player because they don't have a
-          # card that they can lay.
-          # Can we continue with this run, or at all?
-
-      all_cards = @cpu_hand.cards + @player_hand.cards
-
-      if all_cards.length > 0
-        if all_cards.any? { |c| @total + c.value <= 31 }
-          @engine.set_delay( 0.5 ) if @turn == :cpu
-          return  # Continue with same player
-        else
-          score_current_player 1
-        end
-
-        # There was no way to continue with the previous run, start a new one with
-        # the other player
-
-        start_run
-        if @turn == :player
-          @turn = :cpu
-          @engine.set_delay( 0.5 )
-        else
-          @turn = :player
-        end
-      else  # No cards left
-        score_current_player 1
-
-        @engine.set_phase THE_SHOW
-        @engine.set_delay 0.5
-      end
+    else
+      check_all_cards
     end
+  end
+
+
+  # At this point, we can't swap to the other player because they don't have a
+  # card that they can lay.
+  # Can we continue with this run, or at all?
+
+  def check_all_cards
+    all_cards = @cpu_hand.cards + @player_hand.cards
+
+    if all_cards.length > 0
+      if all_cards.any? { |c| @total + c.value <= 31 }
+        @engine.set_delay( 0.5 ) if @turn == :cpu
+        return  # Continue with same player
+      else
+        score_current_player 1
+      end
+
+      # There was no way to continue with the previous run, start a new one with
+      # the other player
+
+      start_set
+
+      if @turn == :player
+        @turn = :cpu
+        @engine.set_delay( 0.5 )
+      else
+        @turn = :player
+      end
+    else      # No cards left, we're outta here!
+      score_current_player 1
+
+      @engine.set_phase THE_SHOW
+      @engine.set_delay 0.5
+    end
+  end
+
+
+  def score_current_player( by )
+    @engine.scores[@turn] += by
   end
 
 end

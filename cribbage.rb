@@ -59,7 +59,7 @@ module CribbageGame
             cut_card
             @card_name = @card_cut.name  # DEBUG
             @dbg_score = Cribbage::Scorer.new( @player_hand, @card_cut ).evaluate # DEBUG
-            @position = nil
+            @position  = nil
 
             @play31 = Player31.new( self, @player_hand, @cpu_hand )
             set_phase PLAY_31
@@ -88,12 +88,11 @@ module CribbageGame
       draw_hands
       draw_scores
 
-      # Always draw the spare pack, and then the cut card on top if it's set
-
-      @pack.draw
+      @pack.draw    # Always draw the spare pack, then the cut card on top if it's set
       @card_cut.draw( :face_up ) if @card_cut
 
       @discard_button.draw
+
       draw_crib if @show_crib
 
       @play31.draw if @game_phase == PLAY_31
@@ -160,6 +159,18 @@ module CribbageGame
     end
 
 
+    def draw_arrow
+      return if !@arrow_x
+
+      self.draw_triangle(
+        @arrow_x, @arrow_y - CARD_GAP, ARROW_COLOUR,
+        @arrow_x + CARD_GAP * 2, @arrow_y, ARROW_COLOUR,
+        @arrow_x, @arrow_y + CARD_GAP, ARROW_COLOUR,
+        2
+      )
+    end
+
+
     def button_down btn_id
       case btn_id
         when Gosu::KbEscape   then  close
@@ -173,18 +184,6 @@ module CribbageGame
     def load_images
       @card_back_image  = Gosu::Image.new( self, 'media/CardBack.png', true )
       @card_front_image = Gosu::Image.new( self, 'media/CardFront.png', true )
-    end
-
-
-    def draw_arrow
-      return if !@arrow_x
-
-      self.draw_triangle(
-        @arrow_x, @arrow_y - CARD_GAP, ARROW_COLOUR,
-        @arrow_x + CARD_GAP * 2, @arrow_y, ARROW_COLOUR,
-        @arrow_x, @arrow_y + CARD_GAP, ARROW_COLOUR,
-        2
-      )
     end
 
 
@@ -219,8 +218,8 @@ module CribbageGame
 
 
     def cut_card
-       @card_cut = @pack.cut
-       @card_cut.set_position( PACK_LEFT + 2, PACK_TOP + 2 )
+      @card_cut = @pack.cut
+      @card_cut.set_position( PACK_LEFT + 2, PACK_TOP + 2 )
     end
 
 
@@ -248,23 +247,21 @@ module CribbageGame
 
 
     def discard_crib_cards
-      @crib << @player_hand.cards[@selected[0]]
-      @crib << @player_hand.cards[@selected[1]]
+      @crib.push( @player_hand.cards[@selected[0]], @player_hand.cards[@selected[1]] )
       @player_hand.discard( *@selected )
 
       # THIS IS ALL TEMPORARY
       s1, s2 = rand( 0..5 ), rand( 0..5 )
       s2 = ((s1 + 1) % 6) if s1 == s2
 
-      @crib << @cpu_hand.cards[s1]
-      @crib << @cpu_hand.cards[s2]
+      @crib.push( @cpu_hand.cards[s1], @cpu_hand.cards[s2] )
 
       @cpu_hand.discard( s1, s2 )
       # TO HERE
 
-      @selected = []
-      @discard_button.hide()
+      @selected  = []
       @show_crib = true
+      @discard_button.hide()
 
       set_hand_positions
 

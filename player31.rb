@@ -19,6 +19,7 @@ class Player31
     start_set
   end
 
+
   def update( position )
     if @turn == :player
       if position
@@ -35,9 +36,11 @@ class Player31
     false   # User didn't select
   end
 
+
   def draw
-    @engine.score_font.draw( 'Total', LEFT + (CARD_WIDTH + CARD_GAP) * @cur_set, TOP - 20, 1, 1, 1, SCORE_TEXT_COLOUR )
-    @engine.score_font.draw( @total,  LEFT + (CARD_WIDTH + CARD_GAP) * @cur_set + 50, TOP - 20, 1, 1, 1, SCORE_NUM_COLOUR )
+    left = LEFT + (CARD_WIDTH + CARD_GAP) * @cur_set
+    @engine.score_font.draw( 'Total', left, TOP - 20, 1, 1, 1, SCORE_TEXT_COLOUR )
+    @engine.score_font.draw( @total,  left + 50, TOP - 20, 1, 1, 1, SCORE_NUM_COLOUR )
 
     @card_sets.each do |run|
       run.each { |c| c.draw :face_up }
@@ -84,15 +87,19 @@ class Player31
     highest, hidx = 0, 0
 
     @cpu_hand.cards.each_with_index do |c, idx|
-      if @total + c.value == 15 || @total + c.value == 31 ||
+      val = c.value
+
+      if @total + val == 15 || @total + val == 31 ||
          (@card_sets[@cur_set].length > 0 && c.rank == @card_sets[@cur_set][-1].rank)
         @cpu_hand.cards.slice!( idx )
         add_card_to_set c.dup
         return
       end
 
-      highest, hidx = c.value, idx if c.value > highest && @total + c.value < 31
+      highest, hidx = val, idx if val > highest && @total + val < 31
     end
+
+    # No excellent card, so use the highest layable card
 
     the_card = @cpu_hand.cards[hidx].dup
     @cpu_hand.cards.slice!( hidx )
@@ -148,6 +155,7 @@ class Player31
     (1..cards.size-1).all? { |idx| cards[idx].rank == cards[idx-1].rank + 1 }
   end
 
+
   # Attempt to swap to the other player
 
   def set_turn
@@ -164,7 +172,7 @@ class Player31
 
   # At this point, we can't swap to the other player because they don't have a
   # card that they can lay.
-  # Can we continue with this run, or at all?
+  # Can we continue with this set, or at all?
 
   def check_all_cards
     all_cards = @cpu_hand.cards + @player_hand.cards
@@ -177,14 +185,14 @@ class Player31
         score_current_player 1
       end
 
-      # There was no way to continue with the previous run, start a new one with
-      # the other player
+      # There was no way to continue with the previous set, start a new one with
+      # the other player.
 
       start_set
 
       if @turn == :player
         @turn = :cpu
-        @engine.set_delay( 0.5 )
+        @engine.set_delay 1
       else
         @turn = :player
       end
@@ -192,7 +200,7 @@ class Player31
       score_current_player 1
 
       @engine.set_phase THE_SHOW
-      @engine.set_delay 0.5
+      @engine.set_delay 1
     end
   end
 

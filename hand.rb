@@ -31,9 +31,11 @@ module Cribbage
       @cards.sort_by! { |c| c.rank }
     end
 
+
     def clone
       GosuHand.new( nil, self.cards.clone )
     end
+
 
     def set_positions( left, top, gap )
       @cards.each do |c|
@@ -41,6 +43,7 @@ module Cribbage
         left += gap
       end
     end
+
 
     def draw( orient )
       @cards.each { |c| c.draw( orient ) }

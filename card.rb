@@ -40,9 +40,9 @@ module Cribbage
       "#{rank == 10 ? '10' : rank_name.slice(0)}#{suit_char}"
     end
 
-    def rank_name;    RANKS[@rank - 1];       end
-    def suit_name;    SUITS[@suit - 1];       end
-    def suit_char;    SUIT_CHARS[@suit - 1];  end
+    def rank_name;  RANKS[@rank - 1];       end
+    def suit_name;  SUITS[@suit - 1];       end
+    def suit_char;  SUIT_CHARS[@suit - 1];  end
 
     def value;    [rank, 10].min;   end     # Return 10 for 10, J, Q, K
 

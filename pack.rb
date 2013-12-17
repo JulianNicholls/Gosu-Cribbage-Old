@@ -9,6 +9,10 @@ module Cribbage
   class Pack
 
     def initialize
+      reset
+    end
+
+    def reset
       @cards      = Array.new( 52, 1 )
       @cards_left = 52
     end
@@ -49,7 +53,7 @@ module Cribbage
     def initialize
       super
 
-      @fan = []
+      @fan, @fan_cards = nil, {}
     end
 
     def deal
@@ -70,15 +74,36 @@ module Cribbage
       @back.draw( left, top, 1 )
     end
 
-    def draw_fan( pos_left, pos_top, gap, orient )
-      while left > 0
-        card = deal( GosuCard )
-        card.set_position( pos_left, pos_top )
-        card.draw( orient )
-        @fan.push card
+    def draw_fan( pos_left, pos_top, gap, orient = :face_down )
+      if @fan
+        @fan.each { |c| c.draw( orient ) }
+        @fan_cards.keys.each { |k| @fan_cards[k].draw( :face_up ) }
+      else
+        @fan = []
 
-        pos_left += gap
+        while !empty?
+          card = deal
+          card.set_position( pos_left, pos_top )
+          card.draw( orient )
+          @fan.push card
+
+          pos_left += gap
+        end
       end
     end
+
+    def card_from_fan( x, y = nil, turn = :player )
+      @fan.reverse.each do |c|  # Must traverse from the right, because cards overlap each other
+        if c.inside?( x, y )
+          @fan_cards[turn] = c
+          @fan_cards[turn].move_by( 0, (turn == :player) ? CARD_GAP : -CARD_GAP )
+
+          return c
+        end
+      end
+
+      nil
+    end
+
   end
 end

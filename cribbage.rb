@@ -60,14 +60,14 @@ module CribbageGame
           @instruction = 'Cut for Deal'
 
           if @position && player_cut_card
-            set_delay 0.5
+            set_delay 1
             @game_phase = CPU_CUT
             @instruction = nil
           end
 
         when CPU_CUT
           cpu_cut_card
-          set_delay 1
+          set_delay 1.5
           @game_phase = CUTS_MADE
 
         when CUTS_MADE
@@ -75,6 +75,8 @@ module CribbageGame
           @game_phase = DISCARDING
 
         when DISCARDING
+          @instruction = 'Click to Select for Discard'
+
           if @position && @discard_button.inside?( @position )
             discard_crib_cards
             @position = nil
@@ -83,6 +85,8 @@ module CribbageGame
           end
 
         when CUT_CARD
+          @instruction = "Click Pack for Turn-up Card"
+
           if @position && @pack.inside?( @position )
             set_turn_card
             @dbg_score = Cribbage::Scorer.new( @player_hand, @card_cut ).evaluate # DEBUG
@@ -91,6 +95,7 @@ module CribbageGame
             @play31 = Player31.new( self, @player_hand, @cpu_hand )
             set_phase PLAY_31
             set_arrow( 1, Player31::TOP + CARD_GAP )
+            @instruction = nil
           end
 
         when PLAY_31
@@ -122,7 +127,7 @@ module CribbageGame
 
         @play31.draw if @game_phase == PLAY_31
 
-        draw_arrow
+#        draw_arrow       # I'm not sure about this any more
 
         debug_display
       end
@@ -133,13 +138,12 @@ module CribbageGame
       # Baize
       draw_rectangle( 0, 0, WIDTH, HEIGHT, 0, BAIZE_COLOUR );
 
-      # Score Edge
+      # Score Edge and Background
       draw_rectangle( SCORE_LEFT - CARD_GAP, 1, WIDTH - (SCORE_LEFT - CARD_GAP), 64, 0, SCORE_TEXT_COLOUR )
-
-      # Score Background
       draw_rectangle( (SCORE_LEFT - CARD_GAP) + 1, 2, WIDTH - (SCORE_LEFT - CARD_GAP) - 2, 62, 0, SCORE_BKGR_COLOUR )
 
-      @font.draw( "The Julio", 60, 220, 0, 1, 1, WATERMARK_COLOUR )
+      # 'Watermark' on the background
+      @font.draw( "The Julio", WATERMARK_LEFT, WATERMARK_TOP, 0, 1, 1, WATERMARK_COLOUR )
     end
 
 
@@ -156,15 +160,17 @@ module CribbageGame
 
 
     def draw_instruction
-      puts "Drawing Instructions #{@instruction}..."
+#      puts "Drawing Instructions #{@instruction}..."
 
       width  = @instruction_font.text_width( @instruction )
       margin = @instruction_font.text_width( 'XX' )
       height = @instruction_font.height
 
-      draw_rectangle( MID_X - width/2 - margin, MID_Y - height, width + margin * 2, height * 2, 6, WATERMARK_COLOUR )
+      left = [INSTRUCTION_MIDDLE - (width/2 + margin), 3].max
 
-      @instruction_font.draw( @instruction, MID_X - width/2, MID_Y - height/2, 7, 1, 1, 0xffffffff )
+      draw_rectangle( left, INSTRUCTION_TOP, width + margin * 2, height * 2, 6, WATERMARK_COLOUR )
+
+      @instruction_font.draw( @instruction, left + margin, INSTRUCTION_TOP + height/2, 7, 1, 1, 0xffffffff )
     end
 
     def draw_pack_fan

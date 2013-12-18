@@ -96,7 +96,7 @@ module Cribbage
       @fan.reverse.each do |c|  # Must traverse from the right, because cards overlap each other
         if c.inside?( x, y )
           @fan_cards[turn] = c
-          @fan_cards[turn].move_by( 0, (turn == :player) ? CARD_GAP : -CARD_GAP )
+          @fan_cards[turn].move_by( 0, (turn == :player) ? CARD_HEIGHT + CARD_GAP : -(CARD_HEIGHT + CARD_GAP) )
 
           return c
         end

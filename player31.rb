@@ -78,7 +78,7 @@ class Player31
 
   # Select a 'good' card for the CPU.
   #   If it's possible to get to 15 or 31, do that, or
-  #   If we can form a pair, otherwise
+  #   If we can form a pair below 31, otherwise
   #   Choose the highest card that can be laid.
   # In the future, runs will also be considered.
   # The player's cards will NEVER be taken into consideration!
@@ -86,17 +86,21 @@ class Player31
   def cpu_select
     highest, hidx = 0, 0
 
+    this_set = @card_sets[@cur_set]
+
     @cpu_hand.cards.each_with_index do |c, idx|
       val = c.value
 
-      if @total + val == 15 || @total + val == 31 ||
-         (@card_sets[@cur_set].length > 0 && c.rank == @card_sets[@cur_set][-1].rank)
-        @cpu_hand.cards.slice!( idx )
-        add_card_to_set c.dup
-        return
-      end
+      if @total + val <= 31
+        if @total + val == 15 || @total + val == 31 ||
+         (this_set.length > 0 && c.rank == this_set[-1].rank)
+          @cpu_hand.cards.slice!( idx )
+          add_card_to_set c.dup
+          return
+        end
 
-      highest, hidx = val, idx if val > highest && @total + val < 31
+        highest, hidx = val, idx if val > highest
+      end
     end
 
     # No excellent card, so use the highest layable card

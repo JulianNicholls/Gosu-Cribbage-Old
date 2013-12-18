@@ -102,7 +102,7 @@ module Cribbage
         end
       end
 
-      nil
+      nil   # Nothing chosen
     end
 
   end

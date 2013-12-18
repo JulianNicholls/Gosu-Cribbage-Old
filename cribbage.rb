@@ -1,18 +1,19 @@
 require './gosu_enhanced'
-
+require './helpers'
 require './button'
+
+require './constants'
 
 require './hand'
 require './scorer'
 require './player31'
-
-require './constants'
 
 
 module CribbageGame
   class Engine < Gosu::Window
 
     include Constants
+    include Helpers
 
 
     attr_reader   :score_font
@@ -40,7 +41,6 @@ module CribbageGame
       @show_crib    = FALSE
       @crib         = []
       @scores       = { player: 0, cpu: 0 }
-      @delay        = nil
       @instruction  = nil
       @fan_cards    = {}
     end
@@ -62,7 +62,7 @@ module CribbageGame
 
           if @position && player_cut_card
             set_delay 1
-            @game_phase = CPU_CUT
+            set_phase CPU_CUT
             @instruction = nil
           end
 
@@ -73,7 +73,7 @@ module CribbageGame
 
         when CUTS_MADE
           deal_hands
-          @game_phase = DISCARDING
+          set_phase DISCARDING
 
         when DISCARDING
           @instruction = 'Click to Select for Discard'
@@ -115,7 +115,7 @@ module CribbageGame
       draw_scores
       draw_instruction if @instruction
 
-      draw_pack_fan if @game_phase <  DISCARDING
+      draw_pack_fan if @game_phase < DISCARDING
 
       if @game_phase >= DISCARDING
         draw_hands
@@ -131,7 +131,7 @@ module CribbageGame
 
 #        draw_arrow       # I'm not sure about this any more
 
-        debug_display
+#        debug_display
       end
     end
 
@@ -275,9 +275,18 @@ module CribbageGame
 
 
     def decide_dealer
-      @dealer     = :player
-      @turn       = other_player @dealer
-      @game_phase = CUTS_MADE
+      if @fan_cards[:player].rank < @fan_cards[:cpu].rank
+        @dealer = :player
+      elsif @fan_cards[:cpu].rank < @fan_cards[:player].rank
+        @dealer = :player
+      else
+        set_delay 1
+        set_phase INITIAL_CUT   # Go again
+        return
+      end
+
+      @turn = other_player @dealer
+      set_phase CUTS_MADE
     end
 
 
@@ -333,19 +342,6 @@ module CribbageGame
     end
 
 
-    def set_delay( length )
-      @delay = Time.now + length
-    end
-
-
-    def delaying
-      return true if @delay && Time.now < @delay
-
-      @delay = nil
-      false
-    end
-
-
     def set_arrow( x, y = nil )
       @arrow_x, @arrow_y = x, y
     end
@@ -357,11 +353,6 @@ module CribbageGame
 
 
 private
-
-    def other_player( turn )
-        (turn == :player) ? :cpu : :player
-    end
-
 
     def swap_player
       @turn = other_player( @turn )

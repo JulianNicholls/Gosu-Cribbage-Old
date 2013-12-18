@@ -15,7 +15,7 @@ module CribbageGame
     include Constants
 
 
-    attr_reader :score_font
+    attr_reader   :score_font
     attr_accessor :scores
 
 
@@ -42,6 +42,7 @@ module CribbageGame
       @scores       = { player: 0, cpu: 0 }
       @delay        = nil
       @instruction  = nil
+      @fan_cards    = {}
     end
 
 
@@ -67,8 +68,8 @@ module CribbageGame
 
         when CPU_CUT
           cpu_cut_card
+          decide_dealer
           set_delay 1.5
-          @game_phase = CUTS_MADE
 
         when CUTS_MADE
           deal_hands
@@ -92,7 +93,7 @@ module CribbageGame
             @dbg_score = Cribbage::Scorer.new( @player_hand, @card_cut ).evaluate # DEBUG
             @position  = nil
 
-            @play31 = Player31.new( self, @player_hand, @cpu_hand )
+            @play31 = Player31.new( self, @player_hand, @cpu_hand, @turn )
             set_phase PLAY_31
             set_arrow( 1, Player31::TOP + CARD_GAP )
             @instruction = nil
@@ -102,6 +103,7 @@ module CribbageGame
           @position = nil if @play31.update( @position )
 
         when THE_SHOW
+          @turn = other_player @dealer
           set_arrow( nil )
       end
     end
@@ -257,9 +259,9 @@ module CribbageGame
 
 
     def player_cut_card
-      card = @pack.card_from_fan( @position, :player )
+      @fan_cards[:player] = @pack.card_from_fan( @position, :player )
 
-      return false unless card
+      return false unless @fan_cards[:player]
 
       true
     end
@@ -268,7 +270,14 @@ module CribbageGame
     def cpu_cut_card
       x, y = rand( CARD_GAP..(52 * CARD_GAP) ), PACK_TOP + 10
 
-      card = @pack.card_from_fan( x, y, :cpu )
+      @fan_cards[:cpu] = @pack.card_from_fan( x, y, :cpu )
+    end
+
+
+    def decide_dealer
+      @dealer     = :player
+      @turn       = other_player @dealer
+      @game_phase = CUTS_MADE
     end
 
 
@@ -348,6 +357,15 @@ module CribbageGame
 
 
 private
+
+    def other_player( turn )
+        (turn == :player) ? :cpu : :player
+    end
+
+
+    def swap_player
+      @turn = other_player( @turn )
+    end
 
     def debug_display
       dbg_str = @game_phase.to_s

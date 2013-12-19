@@ -5,6 +5,7 @@ module Cribbage
   class Scorer
 
     attr_accessor :crib
+    attr_reader   :scores
 
     def initialize( hand, turncard, crib = false )
       @crib = crib
@@ -19,7 +20,15 @@ module Cribbage
     end
 
     def evaluate
-      fifteens_score + pairs_score + runs_score + flush_score + one_for_his_nob
+      @scores = {
+        fifteen:  fifteens_score,
+        pair:     pairs_score,
+        run:      runs_score,
+        flush:    flush_score,
+        nob:      one_for_his_nob
+      }
+
+      @scores.values.reduce( :+ )
     end
 
 
@@ -30,26 +39,19 @@ module Cribbage
 
       score = 0
 
-      # There's a complication for threes because combos like 6 3 6 are scored twice
-      # like this: (6S + 3S) + 6D and 6S + (3S + 6D)
-      # but 5 5 5 is just worth 2
-
-      @threes.each do |three|
-        if three.map( &:value ).reduce( :+ ) == 15
-          score += 2
-          score += 2 if three[0].rank != 5 && (three[0].rank == three[1].rank || three[0].rank == three[2].rank || three[2].rank == three[1].rank)
-        end
-      end
-
-      @fours.each { |four| score += 2 if four.map( &:value ).reduce( :+ ) == 15 }
-      @pairs.each { |pair| score += 2 if pair.map( &:value ).reduce( :+ ) == 15 }
+      @fours.each  { |four|  score += 2 if four.map( &:value ).reduce( :+ ) == 15 }
+      @threes.each { |three| score += 2 if three.map( &:value ).reduce( :+ ) == 15 }
+      @pairs.each  { |pair|  score += 2 if pair.map( &:value ).reduce( :+ ) == 15 }
 
       score
     end
 
+    # Count pairs, pairs royal, and double pairs royal
+
     def pairs_score
       @pairs.reduce( 0 ) { |score, pair| (pair[0].rank == pair[1].rank) ? (score + 2) : score }
     end
+
 
     def runs_score
       return 5 if run?( @thefive )
@@ -60,9 +62,11 @@ module Cribbage
       @threes.reduce( 0 ) { |score, cards| run?( cards ) ? score + 3 : score }
     end
 
+
     def run?( cards )
       (1..cards.size-1).all? { |idx| cards[idx].rank == cards[idx-1].rank + 1 }
     end
+
 
     # 4 points if all the cards in the hand are the same suit, except in a crib
     # 5 points if the turn card is also the same suit, even in a crib
@@ -76,9 +80,12 @@ module Cribbage
       score
     end
 
+    # Jack in hand matches turn card suit
+
     def one_for_his_nob
       @hand.cards.any? { |c| (c.rank == Cribbage::Card::JACK && c.suit == @turncard.suit) } ? 1 : 0
     end
+
 
     # Collect the five cards together in rank/value order
 
@@ -87,6 +94,7 @@ module Cribbage
       @thefive << @turncard
       @thefive.sort_by! { |c| c.rank }
     end
+
 
     # The combos are the combinations of cards in 2s, 3s, and 4s
 

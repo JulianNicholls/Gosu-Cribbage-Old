@@ -54,8 +54,6 @@ module CribbageGame
     def update
       return if delaying
 
-      @dbg_score  = nil  # DEBUG
-
       case @game_phase
         when INITIAL_CUT
           @instruction = 'Cut for Deal'
@@ -82,7 +80,7 @@ module CribbageGame
             discard_crib_cards
             @position = nil
           else
-            @position = nil if @position && select_card
+            @position = nil if @position && select_discard
           end
 
         when CUT_CARD
@@ -90,12 +88,10 @@ module CribbageGame
 
           if @position && @pack.inside?( @position )
             set_turn_card
-            @dbg_score = Cribbage::Scorer.new( @player_hand, @card_cut ).evaluate # DEBUG
             @position  = nil
 
             @play31 = Player31.new( self, @player_hand, @cpu_hand, @turn )
             set_phase PLAY_31
-            set_arrow( 1, Player31::TOP + CARD_GAP )
             @instruction = nil
           end
 
@@ -104,7 +100,6 @@ module CribbageGame
 
         when THE_SHOW
           @turn = other_player @dealer
-          set_arrow( nil )
       end
     end
 
@@ -128,10 +123,6 @@ module CribbageGame
         draw_crib if @show_crib
 
         @play31.draw if @game_phase == PLAY_31
-
-#        draw_arrow       # I'm not sure about this any more
-
-#        debug_display
       end
     end
 
@@ -150,30 +141,33 @@ module CribbageGame
 
 
     def draw_scores
-      player = 'Player '
-      width  = @fonts[:score].text_width( player, 1 )
-      height = @fonts[:score].height
+      player  = 'Player '
+      font    = @fonts[:score]
+      width   = font.text_width( player, 1 )
+      height  = font.height
 
-      @fonts[:score].draw( "CPU", SCORE_LEFT, SCORE_TOP, 1, 1, 1, SCORE_TEXT_COLOUR )
-      @fonts[:score].draw( @scores[:cpu], SCORE_LEFT + width, SCORE_TOP, 1, 1, 1, SCORE_NUM_COLOUR )
-      @fonts[:score].draw( player, SCORE_LEFT, SCORE_TOP + height, 1, 1, 1, SCORE_TEXT_COLOUR )
-      @fonts[:score].draw( @scores[:player], SCORE_LEFT + width, SCORE_TOP + height, 1, 1, 1, SCORE_NUM_COLOUR )
+      font.draw( "CPU", SCORE_LEFT, SCORE_TOP, 1, 1, 1, SCORE_TEXT_COLOUR )
+      font.draw( @scores[:cpu], SCORE_LEFT + width, SCORE_TOP, 1, 1, 1, SCORE_NUM_COLOUR )
+      font.draw( player, SCORE_LEFT, SCORE_TOP + height, 1, 1, 1, SCORE_TEXT_COLOUR )
+      font.draw( @scores[:player], SCORE_LEFT + width, SCORE_TOP + height, 1, 1, 1, SCORE_NUM_COLOUR )
     end
 
 
     def draw_instruction
 #      puts "Drawing Instructions #{@instruction}..."
 
-      width  = @fonts[:instructions].text_width( @instruction )
-      margin = @fonts[:instructions].text_width( 'XX' )
-      height = @fonts[:instructions].height
+      font   = @fonts[:instructions]
+      width  = font.text_width( @instruction )
+      margin = font.text_width( 'XX' )
+      height = font.height
 
       left = [INSTRUCTION_MIDDLE - (width/2 + margin), 3].max
 
       draw_rectangle( left, INSTRUCTION_TOP, width + margin * 2, height * 2, 6, WATERMARK_COLOUR )
 
-      @fonts[:instructions].draw( @instruction, left + margin, INSTRUCTION_TOP + height/2, 7, 1, 1, 0xffffffff )
+      font.draw( @instruction, left + margin, INSTRUCTION_TOP + height/2, 7, 1, 1, 0xffffffff )
     end
+
 
     def draw_pack_fan
       @pack.draw_fan( CARD_GAP, PACK_TOP, CARD_GAP, :face_down )
@@ -192,18 +186,6 @@ module CribbageGame
 
     def draw_crib
       @images[:back].draw( CRIB_LEFT, CRIB_TOP, 1 )
-    end
-
-
-    def draw_arrow
-      return if !@arrow_x
-
-      self.draw_triangle(
-        @arrow_x, @arrow_y - CARD_GAP, ARROW_COLOUR,
-        @arrow_x + CARD_GAP * 2, @arrow_y, ARROW_COLOUR,
-        @arrow_x, @arrow_y + CARD_GAP, ARROW_COLOUR,
-        2
-      )
     end
 
 
@@ -237,6 +219,7 @@ module CribbageGame
       set_hand_positions
     end
 
+
     def set_hand_positions
       @player_hand.set_positions( PLAYER_LEFT, PLAYER_TOP, CARD_WIDTH + CARD_GAP )
       @cpu_hand.set_positions( COMPUTER_LEFT, COMPUTER_TOP, CARD_WIDTH + CARD_GAP )
@@ -263,7 +246,7 @@ module CribbageGame
       if @fan_cards[:player].rank < @fan_cards[:cpu].rank
         @dealer = :player
       elsif @fan_cards[:cpu].rank < @fan_cards[:player].rank
-        @dealer = :player
+        @dealer = :cpu
       else
         set_delay 1
         set_phase INITIAL_CUT   # Go again
@@ -281,8 +264,9 @@ module CribbageGame
     end
 
 
-    def select_card
+    def select_discard
       found = false
+
       @player_hand.cards.each_with_index do |c, idx|
         if c.inside?( @position )
           found = true
@@ -304,17 +288,10 @@ module CribbageGame
 
 
     def discard_crib_cards
-      @crib.push( @player_hand.cards[@selected[0]], @player_hand.cards[@selected[1]] )
+      add_cards_to_crib( @player_hand.cards[@selected[0]], @player_hand.cards[@selected[1]] )
       @player_hand.discard( *@selected )
 
-      # THIS IS ALL TEMPORARY
-      s1, s2 = rand( 0..5 ), rand( 0..5 )
-      s2 = ((s1 + 1) % 6) if s1 == s2
-
-      @crib.push( @cpu_hand.cards[s1], @cpu_hand.cards[s2] )
-
-      @cpu_hand.discard( s1, s2 )
-      # TO HERE
+      cpu_discard_to_crib
 
       @selected  = []
       @show_crib = true
@@ -323,12 +300,22 @@ module CribbageGame
       set_hand_positions
 
       set_phase( CUT_CARD )
-      set_arrow( PACK_LEFT - (CARD_GAP * 2), PACK_TOP + CARD_GAP )
     end
 
 
-    def set_arrow( x, y = nil )
-      @arrow_x, @arrow_y = x, y
+    def cpu_discard_to_crib
+      # THIS IS ALL TEMPORARY
+      s1, s2 = rand( 0..5 ), rand( 0..5 )
+      s2 = ((s1 + 1) % 6) if s1 == s2
+
+      add_cards_to_crib( @cpu_hand.cards[s1], @cpu_hand.cards[s2] )
+
+      @cpu_hand.discard( s1, s2 )
+    end
+
+
+    def add_cards_to_crib( c1, c2 )
+      @crib.push( c1, c2 )
     end
 
 
@@ -343,15 +330,6 @@ private
       @turn = other_player( @turn )
     end
 
-    def debug_display
-      dbg_str = @game_phase.to_s
-
-      dbg_str += " - Selected: #{@selected}"  if !@selected.empty? || @game_phase == DISCARDING
-      dbg_str += " - #{@position}"            if @position
-      dbg_str += " - Score: #{@dbg_score}"    if @dbg_score
-
-      @fonts[:button].draw( dbg_str, CARD_GAP, MID_Y, 10, 1, 1, 0x80000000 ) unless dbg_str == ''
-    end
   end
 end
 

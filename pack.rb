@@ -12,10 +12,12 @@ module Cribbage
       reset
     end
 
+
     def reset
       @cards      = Array.new( 52, 1 )
       @cards_left = 52
     end
+
 
     def deal( klass = Card )
       return nil if empty?    # Is this valid? should we punish emptyness with an exception
@@ -29,9 +31,11 @@ module Cribbage
       klass.new( (card / 4) + 1, (card % 4) + 1 )
     end
 
+
     def empty?
       @cards_left == 0
     end
+
 
     # I can't think of another way to cut a card at the moment
 
@@ -56,23 +60,28 @@ module Cribbage
       @fan, @fan_cards = nil, {}
     end
 
+
     def deal
       super( GosuCard )
     end
 
     alias_method :cut, :deal
 
+
     def set_images( front, back )
       @front, @back = front, back
     end
+
 
     def set_position( left, top )
       set_area( left, top, CARD_WIDTH, CARD_HEIGHT )
     end
 
+
     def draw
       @back.draw( left, top, 1 )
     end
+
 
     def draw_fan( pos_left, pos_top, gap, orient = :face_down )
       if @fan
@@ -91,6 +100,7 @@ module Cribbage
         end
       end
     end
+
 
     def card_from_fan( x, y = nil, turn = :player )
       @fan.reverse.each do |c|  # Must traverse from the right, because cards overlap each other

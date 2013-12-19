@@ -1,3 +1,5 @@
+require 'gosu'
+
 module CribbageGame
   module Constants
 
@@ -10,6 +12,7 @@ module CribbageGame
     DISCARDING  = 10
     CUT_CARD    = 20
     PLAY_31     = 30
+    PLAY_31_DONE= 35
     THE_SHOW    = 40
     CRIB_SHOW   = 50
 

@@ -55,17 +55,21 @@ module Cribbage
     include Region
     include CribbageGame::Constants
 
+
     RED_COLOUR   = 0xffa00000
     BLACK_COLOUR = 0xff000000
+
 
     def self.set_display( front, back, font )
       @@back_image, @@front_image = back, front
       @@font = font
     end
 
+
     def set_position( pos_left, pos_top )
       set_area( pos_left, pos_top, CARD_WIDTH, CARD_HEIGHT )
     end
+
 
     def draw( orient = :face_up, front = nil, back = nil, font = nil )
       if orient == :face_down || orient == :peep

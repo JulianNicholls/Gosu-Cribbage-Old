@@ -1,8 +1,10 @@
+require 'gosu'
+
 module CribbageGame
   module Helpers
 
     def other_player( turn )
-        (turn == :player) ? :cpu : :player
+      (turn == :player) ? :cpu : :player
     end
 
     def set_delay( length )

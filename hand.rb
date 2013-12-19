@@ -24,6 +24,7 @@ module Cribbage
 
   end
 
+
   class GosuHand < Hand
 
     def initialize( pack, copy = nil )

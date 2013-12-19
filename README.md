@@ -5,8 +5,8 @@ This will eventually be a game of cribbage running under the Ruby
 
 ## Cut for Deal
 
-First, a cut is made for deal. This is not actually honoured yet, the game
-is currently run as a confused mix with the player initiating each phase.
+First, a cut is made for deal. This is now honoured for the correct starter
+of play to 31.
 
 ## Deal and Discards
 
@@ -16,13 +16,13 @@ hand via the mouse. For now, the computer just discards a random pair of cards.
 ## Turn-up card cut
 
 After discarding, clicking on the pack at the right hand side will cut a
-card, and display the value of the player's hand with the cut card.
+card (always done by the human player at present)
 
 ## Play to 31
 
-After the card is cut, it is up to the player to start the play to 31.
-The CPU will also choose cards in turn, with some intelligence.
-15s, 31s, pairs / royal, runs, and goes are scored.
+After the card is cut, the correct player will start the play to 31.
+The CPU will choose cards in turn, with some intelligence. 15s, 31s,
+pairs / royal / double, runs, and goes are scored.
 
 ## Vegetables
 

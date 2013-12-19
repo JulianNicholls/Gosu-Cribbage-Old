@@ -98,6 +98,9 @@ module CribbageGame
         when PLAY_31
           @position = nil if @play31.update( @position )
 
+        when PLAY_31_DONE
+          set_phase THE_SHOW
+
         when THE_SHOW
           @turn = other_player @dealer
       end
@@ -122,7 +125,7 @@ module CribbageGame
 
         draw_crib if @show_crib
 
-        @play31.draw if @game_phase == PLAY_31
+        @play31.draw if [PLAY_31, PLAY_31_DONE].include? @game_phase
       end
     end
 
@@ -175,7 +178,7 @@ module CribbageGame
 
 
     def draw_hands
-      if @game_phase == PLAY_31
+      if [PLAY_31, PLAY_31_DONE].include? @game_phase
         @play31.draw_hands
       else
         @player_hand.draw :face_up

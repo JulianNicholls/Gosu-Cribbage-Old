@@ -39,8 +39,8 @@ class Player31
 
   def draw
     left = LEFT + (CARD_WIDTH + CARD_GAP) * @cur_set
-    @engine.score_font.draw( 'Total', left, TOP - 20, 1, 1, 1, SCORE_TEXT_COLOUR )
-    @engine.score_font.draw( @total,  left + 50, TOP - 20, 1, 1, 1, SCORE_NUM_COLOUR )
+    @engine.fonts[:score].draw( 'Total', left, TOP - 20, 1, 1, 1, SCORE_TEXT_COLOUR )
+    @engine.fonts[:score].draw( @total,  left + 50, TOP - 20, 1, 1, 1, SCORE_NUM_COLOUR )
 
     @card_sets.each do |run|
       run.each { |c| c.draw :face_up }

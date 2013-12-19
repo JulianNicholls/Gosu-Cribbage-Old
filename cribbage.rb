@@ -16,7 +16,7 @@ module CribbageGame
     include Helpers
 
 
-    attr_reader   :score_font
+    attr_reader   :fonts
     attr_accessor :scores
 
 
@@ -25,9 +25,9 @@ module CribbageGame
 
       self.caption = "Gosu Cribbage"
 
-      load_images
-      load_fonts
-      @discard_button = Button.new( self, 'Discard', @button_font, DISCARD_COLOUR, DISCARD_LEFT, DISCARD_TOP )
+      @images = load_images self
+      @fonts  = load_fonts self
+      @discard_button = Button.new( self, 'Discard', @fonts[:button], DISCARD_COLOUR, DISCARD_LEFT, DISCARD_TOP )
 
       reset
     end
@@ -145,34 +145,34 @@ module CribbageGame
       draw_rectangle( (SCORE_LEFT - CARD_GAP) + 1, 2, WIDTH - (SCORE_LEFT - CARD_GAP) - 2, 62, 0, SCORE_BKGR_COLOUR )
 
       # 'Watermark' on the background
-      @font.draw( "The Julio", WATERMARK_LEFT, WATERMARK_TOP, 0, 1, 1, WATERMARK_COLOUR )
+      @fonts[:watermark].draw( "The Julio", WATERMARK_LEFT, WATERMARK_TOP, 0, 1, 1, WATERMARK_COLOUR )
     end
 
 
     def draw_scores
       player = 'Player '
-      width  = @score_font.text_width( player, 1 )
-      height = @score_font.height
+      width  = @fonts[:score].text_width( player, 1 )
+      height = @fonts[:score].height
 
-      @score_font.draw( "CPU", SCORE_LEFT, SCORE_TOP, 1, 1, 1, SCORE_TEXT_COLOUR )
-      @score_font.draw( @scores[:cpu], SCORE_LEFT + width, SCORE_TOP, 1, 1, 1, SCORE_NUM_COLOUR )
-      @score_font.draw( player, SCORE_LEFT, SCORE_TOP + height, 1, 1, 1, SCORE_TEXT_COLOUR )
-      @score_font.draw( @scores[:player], SCORE_LEFT + width, SCORE_TOP + height, 1, 1, 1, SCORE_NUM_COLOUR )
+      @fonts[:score].draw( "CPU", SCORE_LEFT, SCORE_TOP, 1, 1, 1, SCORE_TEXT_COLOUR )
+      @fonts[:score].draw( @scores[:cpu], SCORE_LEFT + width, SCORE_TOP, 1, 1, 1, SCORE_NUM_COLOUR )
+      @fonts[:score].draw( player, SCORE_LEFT, SCORE_TOP + height, 1, 1, 1, SCORE_TEXT_COLOUR )
+      @fonts[:score].draw( @scores[:player], SCORE_LEFT + width, SCORE_TOP + height, 1, 1, 1, SCORE_NUM_COLOUR )
     end
 
 
     def draw_instruction
 #      puts "Drawing Instructions #{@instruction}..."
 
-      width  = @instruction_font.text_width( @instruction )
-      margin = @instruction_font.text_width( 'XX' )
-      height = @instruction_font.height
+      width  = @fonts[:instructions].text_width( @instruction )
+      margin = @fonts[:instructions].text_width( 'XX' )
+      height = @fonts[:instructions].height
 
       left = [INSTRUCTION_MIDDLE - (width/2 + margin), 3].max
 
       draw_rectangle( left, INSTRUCTION_TOP, width + margin * 2, height * 2, 6, WATERMARK_COLOUR )
 
-      @instruction_font.draw( @instruction, left + margin, INSTRUCTION_TOP + height/2, 7, 1, 1, 0xffffffff )
+      @fonts[:instructions].draw( @instruction, left + margin, INSTRUCTION_TOP + height/2, 7, 1, 1, 0xffffffff )
     end
 
     def draw_pack_fan
@@ -191,7 +191,7 @@ module CribbageGame
 
 
     def draw_crib
-      @card_back_image.draw( CRIB_LEFT, CRIB_TOP, 1 )
+      @images[:back].draw( CRIB_LEFT, CRIB_TOP, 1 )
     end
 
 
@@ -217,27 +217,12 @@ module CribbageGame
     end
 
 
-    def load_images
-      @card_back_image  = Gosu::Image.new( self, 'media/CardBack.png', true )
-      @card_front_image = Gosu::Image.new( self, 'media/CardFront.png', true )
-    end
-
-
-    def load_fonts
-      @font             = Gosu::Font.new( self, 'Century Schoolbook L', 180 )
-      @score_font       = Gosu::Font.new( self, 'Serif', 20 )
-      @card_font        = Gosu::Font.new( self, 'Arial', 28 )
-      @button_font      = Gosu::Font.new( self, 'Arial', 24 )
-      @instruction_font = Gosu::Font.new( self, 'Serif', 36 )
-    end
-
-
     def setup_cards
-      Cribbage::GosuCard.set_display( @card_front_image, @card_back_image, @card_font )
+      Cribbage::GosuCard.set_display( @images[:front], @images[:back], @fonts[:card] )
 
       @pack = Cribbage::GosuPack.new
       @pack.set_position( PACK_LEFT, PACK_TOP )
-      @pack.set_images( @card_back_image, @card_front_image )
+      @pack.set_images( @images[:front], @images[:back] )
 
       @card_cut = nil
     end
@@ -365,7 +350,7 @@ private
       dbg_str += " - #{@position}"            if @position
       dbg_str += " - Score: #{@dbg_score}"    if @dbg_score
 
-      @button_font.draw( dbg_str, CARD_GAP, MID_Y, 10, 1, 1, 0x80000000 ) unless dbg_str == ''
+      @fonts[:button].draw( dbg_str, CARD_GAP, MID_Y, 10, 1, 1, 0x80000000 ) unless dbg_str == ''
     end
   end
 end

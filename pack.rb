@@ -62,8 +62,8 @@ module Cribbage
 
     alias_method :cut, :deal
 
-    def set_images( back, front )
-      @back, @front = back, front
+    def set_images( front, back )
+      @front, @back = front, back
     end
 
     def set_position( left, top )

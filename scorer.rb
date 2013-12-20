@@ -92,7 +92,7 @@ module Cribbage
     def collect_five
       @thefive = @hand.cards.dup
       @thefive << @turncard
-      @thefive.sort_by! { |c| c.rank }
+      @thefive.sort_by! &:rank
     end
 
 

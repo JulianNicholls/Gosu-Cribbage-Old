@@ -36,4 +36,5 @@ There are on-screen instructions, which are being added to.
 # Keys
 
 R   Restarts
+
 Esc Exits

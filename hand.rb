@@ -9,7 +9,7 @@ module Cribbage
 
     def initialize( pack )
       @cards = Array.new( 6 ) { pack.deal }
-      @cards.sort_by! { |c| c.rank }
+      @cards.sort_by! &:rank
     end
 
     def discard( *discards )
@@ -29,7 +29,7 @@ module Cribbage
 
     def initialize( pack, copy = nil )
       @cards = copy ? copy : Array.new( 6 ) { pack.deal }
-      @cards.sort_by! { |c| c.rank }
+      @cards.sort_by! &:rank
     end
 
 

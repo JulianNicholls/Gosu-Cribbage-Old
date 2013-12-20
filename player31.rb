@@ -153,7 +153,7 @@ module CribbageGame
       this_set = @card_sets[@cur_set]
 
       this_set.length.downto(3) do |n|
-        if run?( this_set[-n..-1].sort_by { |c| c.rank } )
+        if run?( this_set[-n..-1].sort_by &:rank )
           score_current_player n
           return
         end
@@ -211,7 +211,7 @@ module CribbageGame
       score_current_player 1
 
       @engine.set_phase PLAY_31_DONE
-      @engine.set_delay 1
+      @engine.set_delay 1.5
     end
 
 

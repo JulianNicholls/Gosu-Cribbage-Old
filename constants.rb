@@ -5,16 +5,16 @@ module CribbageGame
 
     # Phases
 
-    INITIAL_CUT = 0
-    CPU_CUT     = 2
-    CUTS_MADE   = 4
-    DEAL        = 8
-    DISCARDING  = 10
-    CUT_CARD    = 20
-    PLAY_31     = 30
-    PLAY_31_DONE= 35
-    THE_SHOW    = 40
-    CRIB_SHOW   = 50
+    INITIAL_CUT   = 0
+    CPU_CUT       = 2
+    CUTS_MADE     = 4
+    DEAL          = 8
+    DISCARDING    = 10
+    CUT_CARD      = 20
+    PLAY_31       = 30
+    PLAY_31_DONE  = 35
+    THE_SHOW      = 40
+    CRIB_SHOW     = 50
 
     # Window Sizes
 

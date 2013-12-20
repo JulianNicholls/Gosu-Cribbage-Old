@@ -161,7 +161,7 @@ module CribbageGame
 
       font   = @fonts[:instructions]
       width  = font.text_width( @instruction )
-      margin = font.text_width( 'XX' )
+      margin = font.text_width( 'X' )
       height = font.height
 
       left = [INSTRUCTION_MIDDLE - (width/2 + margin), 3].max

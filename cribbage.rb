@@ -56,7 +56,7 @@ module CribbageGame
 
       case @game_phase
         when INITIAL_CUT
-          @instruction = 'Cut for Deal'
+          @instruction = { text: 'Cut for Deal', top: 400 }
 
           if @position && player_cut_card
             set_delay 1
@@ -74,7 +74,7 @@ module CribbageGame
           set_phase DISCARDING
 
         when DISCARDING
-          @instruction = 'Click to Select for Discard'
+          @instruction = { text: 'Click to Select for Discard' }
 
           if @position && @discard_button.inside?( @position )
             discard_crib_cards
@@ -84,7 +84,7 @@ module CribbageGame
           end
 
         when CUT_CARD
-          @instruction = "Click Pack for Turn-up Card"
+          @instruction = { text: "Click Pack for Turn-up Card", left: 150 }
 
           if @position && @pack.inside?( @position )
             set_turn_card
@@ -140,6 +140,16 @@ module CribbageGame
 
       # 'Watermark' on the background
       @fonts[:watermark].draw( "The Julio", WATERMARK_LEFT, WATERMARK_TOP, 0, 1, 1, WATERMARK_COLOUR )
+
+      # Grid
+
+      0.step( WIDTH-50, 50 ).each do |l|
+        draw_rectangle( l, 0, 2, HEIGHT, 0, WATERMARK_COLOUR )
+      end
+
+      0.step( HEIGHT-50, 50 ).each do |t|
+        draw_rectangle( 0, t, WIDTH, 2, 0, WATERMARK_COLOUR )
+      end
     end
 
 
@@ -157,18 +167,19 @@ module CribbageGame
 
 
     def draw_instruction
-#      puts "Drawing Instructions #{@instruction}..."
+#      puts "Drawing Instructions #{@instruction[:text]}..."
 
       font   = @fonts[:instructions]
-      width  = font.text_width( @instruction )
+      width  = font.text_width( @instruction[:text] )
       margin = font.text_width( 'X' )
       height = font.height
 
-      left = [INSTRUCTION_MIDDLE - (width/2 + margin), 3].max
+      left = @instruction[:left] || [MID_X - (width/2), 3].max
+      top  = @instruction[:top]  || INSTRUCTION_TOP
 
-      draw_rectangle( left, INSTRUCTION_TOP, width + margin * 2, height * 2, 6, WATERMARK_COLOUR )
+      draw_rectangle( left - margin, top, width + margin * 2, height * 2, 6, WATERMARK_COLOUR )
 
-      font.draw( @instruction, left + margin, INSTRUCTION_TOP + height/2, 7, 1, 1, 0xffffffff )
+      font.draw( @instruction[:text], left, top + height/2, 7, 1, 1, 0xffffffff )
     end
 
 

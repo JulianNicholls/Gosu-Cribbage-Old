@@ -48,7 +48,6 @@ module CribbageGame
     WATERMARK_LEFT    = WIDTH / 12
     WATERMARK_TOP     = MID_Y - HEIGHT / 6
 
-    INSTRUCTION_MIDDLE= MID_X - CARD_WIDTH
     INSTRUCTION_TOP   = MID_Y + HEIGHT / 12
 
     COMPUTER_TOP  = CARD_GAP    # Computer Hand

@@ -43,7 +43,7 @@ module CribbageGame
 
     def draw
       left = LEFT + (CARD_WIDTH + CARD_GAP) * @cur_set
-      @engine.fonts[:score].draw( 'Total', left, TOP - 20, 1, 1, 1, SCORE_TEXT_COLOUR )
+      @engine.fonts[:score].draw( 'Count', left, TOP - 20, 1, 1, 1, SCORE_TEXT_COLOUR )
       @engine.fonts[:score].draw( @total,  left + 50, TOP - 20, 1, 1, 1, SCORE_NUM_COLOUR )
 
       @card_sets.each do |run|
@@ -188,7 +188,7 @@ module CribbageGame
 
       if all_cards.length > 0
         if all_cards.any? { |c| @total + c.value <= 31 }
-          @engine.set_delay( 0.5 ) if @turn == :cpu
+          @engine.set_delay( 1 ) if @turn == :cpu
           return  # Continue with same player
         else
           score_current_player 1

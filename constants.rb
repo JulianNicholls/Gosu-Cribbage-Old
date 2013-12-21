@@ -50,6 +50,8 @@ module CribbageGame
 
     INSTRUCTION_TOP   = MID_Y + HEIGHT / 12
 
+    FAN_LEFT          = 50
+
     COMPUTER_TOP  = CARD_GAP    # Computer Hand
     COMPUTER_LEFT = CARD_GAP
 

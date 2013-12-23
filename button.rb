@@ -18,7 +18,8 @@ class Button
   def initialize( window, text, font, colour, left, top, width = nil, height = nil, visible = false )
     @window, @text, @font, @colour = window, text, font, colour
 
-    # If the width and/or height is not specified then measure the font and the button text
+    # If the width and/or height is not specified then measure the font and
+    # the button text
 
     width  ||= @font.text_width( text, 1 ) + 2 * @font.text_width( 'X' )
     height ||= @font.height * 1.5
@@ -36,7 +37,7 @@ class Button
     x_margin = (width  - @font.text_width( @text )) / 2
     y_margin = (height - @font.height) / 2
 
-    #  Colour for the bottom of the button
+    #  Colour for the bottom of the button and the shadow
 
     lighter = Gosu::Color.new( 0xff, @colour.red * 2, @colour.green * 2, @colour.blue * 2 )
     darker  = Gosu::Color.new( 0xc0, @colour.red, @colour.green, @colour.blue )

@@ -5,8 +5,8 @@ This will eventually be a game of cribbage running under the Ruby
 
 ## Cut for Deal
 
-First, a cut is made for deal. This is now honoured for the correct starter
-of play to 31.
+First, a cut is made for deal. This is now honoured for the turn card cut and the
+correct starter of play to 31.
 
 ## Deal and Discards
 
@@ -16,7 +16,8 @@ hand via the mouse. For now, the computer just discards a random pair of cards.
 ## Turn-up card cut
 
 After discarding, clicking on the pack at the right hand side will cut a
-card (always done by the human player at present)
+card, or the CPU will cut if the player os the dealer. 'Two for his heels' is
+scored if a Jack is cut.
 
 ## Play to 31
 
@@ -26,12 +27,13 @@ pairs / royal / double, runs, and goes are scored.
 
 ## Vegetables
 
-Once the play to 31 is complete, that's shallot for now :-) The scoring
-engine is done, so it is possible to do the show.
+Once the play to 31 is complete, that's shallot for now :-) The scoring engine
+is done, so it is possible to do the show.
 
-### Instructions
+### Instructions and Scores
 
-There are on-screen instructions, which are being added to.
+There are on-screen instructions, which are being added to. Also, the reason
+for each score update is shown for a couple of seconds.
 
 # Keys
 

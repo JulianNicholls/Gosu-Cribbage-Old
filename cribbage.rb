@@ -17,7 +17,6 @@ module CribbageGame
 
 
     attr_reader   :fonts
-    attr_accessor :scores
 
 
     def initialize
@@ -43,6 +42,7 @@ module CribbageGame
       @scores       = { player: 0, cpu: 0 }
       @instruction  = nil
       @fan_cards    = {}
+      @score_reason = @score_reason_timeout = nil
     end
 
 
@@ -90,7 +90,7 @@ module CribbageGame
           if @turn == :cpu
             @instruction = { text: "CPU is choosing Turn-up Card", left: 150 }
             set_turn_card
-            set_delay 1
+            set_delay 1.5
             set_phase PLAY_31
           else
             @instruction = { text: "Click Pack for Turn-up Card", left: 150 }
@@ -149,8 +149,8 @@ module CribbageGame
       draw_rectangle( 0, 0, WIDTH, HEIGHT, 0, BAIZE_COLOUR );
 
       # Score Edge and Background
-      draw_rectangle( SCORE_LEFT - MARGIN, 1, WIDTH - (SCORE_LEFT - MARGIN), 64, 0, SCORE_TEXT_COLOUR )
-      draw_rectangle( (SCORE_LEFT - MARGIN) + 1, 2, WIDTH - (SCORE_LEFT - MARGIN) - 2, 62, 0, SCORE_BKGR_COLOUR )
+      draw_rectangle( SCORE_LEFT - MARGIN, 1, WIDTH - (SCORE_LEFT - MARGIN), SCORE_BOX_HEIGHT, 0, SCORE_TEXT_COLOUR )
+      draw_rectangle( (SCORE_LEFT - MARGIN) + 1, 2, WIDTH - (SCORE_LEFT - MARGIN) - 2, SCORE_BOX_HEIGHT - 2, 0, SCORE_BKGR_COLOUR )
 
       # 'Watermark' on the background
       @fonts[:watermark].draw( "The Julio", WATERMARK_LEFT, WATERMARK_TOP, 0, 1, 1, WATERMARK_COLOUR )
@@ -177,6 +177,15 @@ module CribbageGame
       font.draw( @scores[:cpu], SCORE_LEFT + width, SCORE_TOP, 1, 1, 1, SCORE_NUM_COLOUR )
       font.draw( player, SCORE_LEFT, SCORE_TOP + height, 1, 1, 1, SCORE_TEXT_COLOUR )
       font.draw( @scores[:player], SCORE_LEFT + width, SCORE_TOP + height, 1, 1, 1, SCORE_NUM_COLOUR )
+
+      if @score_reason && Time.now < @score_reason_timeout
+        margin = font.text_width( 'x' )
+        width  = font.text_width( @score_reason ) + 2 * margin
+        draw_rectangle( WIDTH - (width + 1), SCORE_BOX_HEIGHT + 4, width, height, 0, WATERMARK_COLOUR )
+        font.draw( @score_reason, WIDTH - (width - margin), SCORE_BOX_HEIGHT + 6, 1, 1, 1, Gosu::Color::WHITE )
+      else
+        @score_reason = nil
+      end
     end
 
 
@@ -193,7 +202,7 @@ module CribbageGame
 
       draw_rectangle( left - margin, top, width + margin * 2, height * 2, 6, WATERMARK_COLOUR )
 
-      font.draw( @instruction[:text], left, top + height/2, 7, 1, 1, 0xffffffff )
+      font.draw( @instruction[:text], left, top + height/2, 7, 1, 1, Gosu::Color::WHITE )
     end
 
 
@@ -350,6 +359,16 @@ module CribbageGame
 
     def set_phase( phase )
       @game_phase = phase
+    end
+
+
+    def set_score( player, value, reason = nil )
+      @scores[player] += value
+
+      if reason
+        @score_reason = player_name( player ) + " scored #{value} for " + reason
+        @score_reason_timeout = Time.now + 2
+      end
     end
 
 

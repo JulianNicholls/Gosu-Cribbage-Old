@@ -76,5 +76,6 @@ module CribbageGame
 
     SCORE_TOP         = MARGIN                              # Score Position
     SCORE_LEFT        = WIDTH - CARD_WIDTH
+    SCORE_BOX_HEIGHT  = 64
   end
 end

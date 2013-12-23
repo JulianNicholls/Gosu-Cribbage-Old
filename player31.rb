@@ -138,16 +138,16 @@ module CribbageGame
       this_set  = @card_sets[@cur_set]
       top       = this_set[-1]    # Last card played
 
-      score_current_player( 2 ) if @total == 15 || @total == 31
+      score_current_player( 2, @total.to_s ) if @total == 15 || @total == 31
 
-      score_current_player( 6 ) if this_set.length >= 4 && this_set[-4..-2].all? { |c| c.rank == top.rank }
+      score_current_player( 6, 'a Double Pair Royal' ) if this_set.length >= 4 && this_set[-4..-2].all? { |c| c.rank == top.rank }
 
       if this_set.length >= 3
-        score_current_player( 4 ) if this_set[-3..-2].all? { |c| c.rank == top.rank }
+        score_current_player( 4, 'a Pair Royal' ) if this_set[-3..-2].all? { |c| c.rank == top.rank }
         score_runs
       end
 
-      score_current_player( 2 ) if this_set.length >= 2 && this_set[-2].rank == top.rank
+      score_current_player( 2, 'a Pair' ) if this_set.length >= 2 && this_set[-2].rank == top.rank
     end
 
 
@@ -156,7 +156,7 @@ module CribbageGame
 
       this_set.length.downto(3) do |n|
         if run?( this_set[-n..-1].sort_by &:rank )
-          score_current_player n
+          score_current_player( n, "a Run of #{n}" )
           return
         end
       end
@@ -193,7 +193,7 @@ module CribbageGame
           @engine.set_delay( 1 ) if @turn == :cpu
           return  # Continue with same player
         else
-          score_current_player 1
+          score_current_player( 1, 'a Go' )
         end
 
         # There was no way to continue with the previous set, start a new one with
@@ -210,15 +210,15 @@ module CribbageGame
 
 
     def complete
-      score_current_player 1
+      score_current_player( 1, 'a Go' )
 
       @engine.set_phase PLAY_31_DONE
       @engine.set_delay 1.5
     end
 
 
-    def score_current_player( by )
-      @engine.scores[@turn] += by
+    def score_current_player( by, reason )
+      @engine.set_score( @turn, by, reason )
     end
 
   end

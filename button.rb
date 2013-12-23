@@ -14,6 +14,7 @@ class Button
 
   attr_accessor :visible
 
+
   def initialize( window, text, font, colour, left, top, width = nil, height = nil, visible = false )
     @window, @text, @font, @colour = window, text, font, colour
 
@@ -25,6 +26,7 @@ class Button
     set_area( left, top, width, height )
     @visible = visible
   end
+
 
   def draw
     return if !visible

@@ -34,7 +34,7 @@ module CribbageGame
         score:          Gosu::Font.new( window, 'Serif', 20 ),
         card:           Gosu::Font.new( window, 'Arial', 28 ),
         button:         Gosu::Font.new( window, 'Arial', 24 ),
-        instructions:   Gosu::Font.new( window, 'Serif', 36 )
+        instructions:   Gosu::Font.new( window, 'Serif', 30 )
       }
     end
 

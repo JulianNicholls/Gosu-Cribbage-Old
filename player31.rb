@@ -9,10 +9,10 @@ module CribbageGame
     include Helpers
 
     TOP  = COMPUTER_TOP + CARD_HEIGHT + CARD_GAP * 2
-    LEFT = CARD_GAP
+    LEFT = MARGIN
 
 
-    def initialize( engine, p_hand, c_hand, start_with = :player )
+    def initialize( engine, p_hand, c_hand, start_with )
       @engine = engine
       @player_hand, @cpu_hand = p_hand.clone, c_hand.clone
       @turn   = start_with
@@ -42,19 +42,19 @@ module CribbageGame
 
 
     def draw
-      left = LEFT + (CARD_WIDTH + CARD_GAP) * @cur_set
+      left = LEFT + (CARD_WIDTH + 3 * CARD_GAP) * @cur_set
       @engine.fonts[:score].draw( 'Count', left, TOP - 20, 1, 1, 1, SCORE_TEXT_COLOUR )
-      @engine.fonts[:score].draw( @total,  left + 50, TOP - 20, 1, 1, 1, SCORE_NUM_COLOUR )
+      @engine.fonts[:score].draw( @total,  left + 55, TOP - 20, 1, 1, 1, SCORE_NUM_COLOUR )
 
       @card_sets.each do |run|
-        run.each { |c| c.draw :face_up }
+        run.each { |c| c.draw( orient: :face_up ) }
       end
     end
 
 
     def draw_hands
-      @player_hand.draw :face_up
-      @cpu_hand.draw :peep     # :face_down
+      @player_hand.draw( orient: :face_up )
+      @cpu_hand.draw( orient: :peep )     # :face_down
     end
 
 
@@ -63,7 +63,7 @@ module CribbageGame
       @cur_set += 1
       @card_sets[@cur_set] = []
 
-      @top, @left  = TOP, LEFT + (CARD_WIDTH + CARD_GAP) * @cur_set
+      @top, @left  = TOP, LEFT + (CARD_WIDTH + 3 * CARD_GAP) * @cur_set
     end
 
 
@@ -88,6 +88,8 @@ module CribbageGame
     # The player's cards will NEVER be taken into consideration!
 
     def cpu_select
+      raise "cpu_select called with no cards in CPU hand" if @cpu_hand.cards.length == 0
+
       highest, hidx = 0, 0
 
       this_set = @card_sets[@cur_set]
@@ -126,8 +128,8 @@ module CribbageGame
       if @total == 31
         start_set
       else
-        @top  += 25
-        @left += 25
+        @top  += FANNED_GAP
+        @left += FANNED_GAP
       end
     end
 

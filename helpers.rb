@@ -7,10 +7,10 @@ module CribbageGame
       (turn == :player) ? :cpu : :player
     end
 
+
     def set_delay( length )
       @delay = Time.now + length
     end
-
 
     def delaying
       return true if @delay && Time.now < @delay

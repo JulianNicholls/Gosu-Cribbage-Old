@@ -54,9 +54,16 @@ module Cribbage
     include Region
     include CribbageGame::Constants
 
+
     def initialize
       super
 
+      @fan, @fan_cards = nil, {}
+    end
+
+
+    def reset
+      super
       @fan, @fan_cards = nil, {}
     end
 
@@ -83,22 +90,21 @@ module Cribbage
     end
 
 
-    def draw_fan( pos_left, pos_top, gap, orient = :face_down )
-      if @fan
-        @fan.each { |c| c.draw( orient ) }
-        @fan_cards.keys.each { |k| @fan_cards[k].draw( :face_up ) }
-      else
+    def draw_fan( pos_left, pos_top, gap, options )
+      unless @fan
         @fan = []
 
         while !empty?
           card = deal
           card.set_position( pos_left, pos_top )
-          card.draw( orient )
           @fan.push card
 
           pos_left += gap
         end
       end
+
+      @fan.each { |c| c.draw( options ) }
+      @fan_cards.keys.each { |k| @fan_cards[k].draw( orient: :face_up ) }
     end
 
 

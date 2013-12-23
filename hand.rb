@@ -46,8 +46,8 @@ module Cribbage
     end
 
 
-    def draw( orient )
-      @cards.each { |c| c.draw( orient ) }
+    def draw( options )
+      @cards.each { |c| c.draw( options ) }
     end
 
   end

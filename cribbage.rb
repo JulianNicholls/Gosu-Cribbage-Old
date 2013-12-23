@@ -62,6 +62,7 @@ module CribbageGame
             set_delay 1
             set_phase CPU_CUT
             @instruction = nil
+            @position = nil
           end
 
         when CPU_CUT
@@ -76,27 +77,40 @@ module CribbageGame
         when DISCARDING
           @instruction = { text: 'Click to Select for Discard' }
 
-          if @position && @discard_button.inside?( @position )
-            discard_crib_cards
-            @position = nil
-          else
-            @position = nil if @position && select_discard
+          if @position
+            if @discard_button.inside?( @position )
+              discard_crib_cards
+              @position = nil
+            else
+              @position = nil if select_discard
+            end
           end
 
         when CUT_CARD
-          @instruction = { text: "Click Pack for Turn-up Card", left: 150 }
-
-          if @position && @pack.inside?( @position )
+          if @turn == :cpu
+            @instruction = { text: "CPU is choosing Turn-up Card", left: 150 }
             set_turn_card
-            @position  = nil
-
-            @play31 = Player31.new( self, @player_hand, @cpu_hand, @turn )
+            set_delay 1
             set_phase PLAY_31
-            @instruction = nil
+          else
+            @instruction = { text: "Click Pack for Turn-up Card", left: 150 }
+
+            if @position && @pack.inside?( @position )
+              set_turn_card
+              @position  = nil
+
+              set_phase PLAY_31
+            end
+          end
+
+          if @game_phase == PLAY_31
+            @play31 = Player31.new( self, @player_hand, @cpu_hand, @turn )
+            @scores[@turn] += 2 if @turn_card.rank == Cribbage::Card::JACK   # Two for his heels
           end
 
         when PLAY_31
-          @position = nil if @play31.update( @position )
+          @instruction  = nil
+          @position     = nil if @play31.update( @position )
 
         when PLAY_31_DONE
           set_phase THE_SHOW
@@ -119,7 +133,7 @@ module CribbageGame
         draw_hands
 
         @pack.draw    # Always draw the spare pack, then the cut card on top if it's set
-        @card_cut.draw( :face_up ) if @card_cut
+        @turn_card.draw( orient: :face_up ) if @turn_card
 
         @discard_button.draw
 
@@ -135,8 +149,8 @@ module CribbageGame
       draw_rectangle( 0, 0, WIDTH, HEIGHT, 0, BAIZE_COLOUR );
 
       # Score Edge and Background
-      draw_rectangle( SCORE_LEFT - CARD_GAP, 1, WIDTH - (SCORE_LEFT - CARD_GAP), 64, 0, SCORE_TEXT_COLOUR )
-      draw_rectangle( (SCORE_LEFT - CARD_GAP) + 1, 2, WIDTH - (SCORE_LEFT - CARD_GAP) - 2, 62, 0, SCORE_BKGR_COLOUR )
+      draw_rectangle( SCORE_LEFT - MARGIN, 1, WIDTH - (SCORE_LEFT - MARGIN), 64, 0, SCORE_TEXT_COLOUR )
+      draw_rectangle( (SCORE_LEFT - MARGIN) + 1, 2, WIDTH - (SCORE_LEFT - MARGIN) - 2, 62, 0, SCORE_BKGR_COLOUR )
 
       # 'Watermark' on the background
       @fonts[:watermark].draw( "The Julio", WATERMARK_LEFT, WATERMARK_TOP, 0, 1, 1, WATERMARK_COLOUR )
@@ -184,7 +198,7 @@ module CribbageGame
 
 
     def draw_pack_fan
-      @pack.draw_fan( CARD_GAP, PACK_TOP, CARD_GAP, :face_down )
+      @pack.draw_fan( FAN_LEFT, PACK_TOP, CARD_GAP, orient: :face_down )
     end
 
 
@@ -192,8 +206,8 @@ module CribbageGame
       if [PLAY_31, PLAY_31_DONE].include? @game_phase
         @play31.draw_hands
       else
-        @player_hand.draw :face_up
-        @cpu_hand.draw :peep     # :face_down
+        @player_hand.draw( orient: :face_up )
+        @cpu_hand.draw( orient: :peep )    # :face_down
       end
     end
 
@@ -220,7 +234,7 @@ module CribbageGame
       @pack.set_position( PACK_LEFT, PACK_TOP )
       @pack.set_images( @images[:front], @images[:back] )
 
-      @card_cut = nil
+      @turn_card = nil
     end
 
 
@@ -250,7 +264,7 @@ module CribbageGame
 
 
     def cpu_cut_card
-      x, y = rand( CARD_GAP..(52 * CARD_GAP) ), PACK_TOP + 10
+      x, y = rand( FAN_LEFT..(FAN_LEFT + 51 * CARD_GAP) ), PACK_TOP + 10
 
       @fan_cards[:cpu] = @pack.card_from_fan( x, y, :cpu )
     end
@@ -261,9 +275,10 @@ module CribbageGame
         @dealer = :player
       elsif @fan_cards[:cpu].rank < @fan_cards[:player].rank
         @dealer = :cpu
-      else
+      else  # Both the same
         set_delay 1
         set_phase INITIAL_CUT   # Go again
+        @pack.reset
         return
       end
 
@@ -273,8 +288,8 @@ module CribbageGame
 
 
     def set_turn_card
-      @card_cut = @pack.cut
-      @card_cut.set_position( PACK_LEFT + 2, PACK_TOP + 2 )
+      @turn_card = @pack.cut
+      @turn_card.set_position( PACK_LEFT + 2, PACK_TOP + 2 )
     end
 
 

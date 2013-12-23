@@ -7,6 +7,10 @@ module CribbageGame
       (turn == :player) ? :cpu : :player
     end
 
+    def player_name( turn )
+      (turn == :player) ? 'Player' : 'CPU'
+    end
+
 
     def set_delay( length )
       @delay = Time.now + length

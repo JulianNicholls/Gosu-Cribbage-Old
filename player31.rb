@@ -2,6 +2,8 @@ require './constants'
 
 require './helpers'
 
+require './scorer31'
+
 module CribbageGame
   # Handle playing to 31 in the game of Cribbage
 
@@ -14,6 +16,7 @@ module CribbageGame
 
     def initialize( engine, p_hand, c_hand, start_with )
       @engine = engine
+      @scorer = Scorer31.new( engine )
       @player_hand, @cpu_hand = p_hand.clone, c_hand.clone
       @turn   = start_with
 
@@ -118,7 +121,7 @@ module CribbageGame
       @card_sets[@cur_set] << card
       @total += card.value
 
-      score_last_cards
+      @scorer.evaluate( @card_sets[@cur_set], @total, @turn )
 
       if @total == 31
         start_set
@@ -126,41 +129,6 @@ module CribbageGame
         @top  += FANNED_GAP
         @left += FANNED_GAP
       end
-    end
-
-    def score_last_cards
-      this_set  = @card_sets[@cur_set]
-      top       = this_set.last
-
-      peg_player( 2, @total.to_s ) if @total == 15 || @total == 31
-
-      if this_set.length >= 4
-        peg_player( 6, 'a Double Pair Royal' ) if this_set[-4..-2].all? { |c| c.rank == top.rank }
-      end
-
-      if this_set.length >= 3
-        peg_player( 4, 'a Pair Royal' ) if this_set[-3..-2].all? { |c| c.rank == top.rank }
-        score_runs
-      end
-
-      if this_set.length >= 3
-        peg_player( 2, 'a Pair' ) if this_set[-2].rank == top.rank
-      end
-    end
-
-    def score_runs
-      this_set = @card_sets[@cur_set]
-
-      this_set.length.downto(3) do |n|
-        if run?( this_set[-n..-1].sort_by( &:rank ) )
-          peg_player( n, "a Run of #{n}" )
-          return
-        end
-      end
-    end
-
-    def run?( cards )
-      (1..cards.size - 1).all? { |idx| cards[idx].rank == cards[idx - 1].rank + 1 }
     end
 
     # Attempt to swap to the other player
@@ -188,7 +156,7 @@ module CribbageGame
           @engine.delay_update( 1 ) if @turn == :cpu
           return  # Continue with same player
         else
-          peg_player( 1, 'a Go' )
+          @scorer.peg_player( @turn, 1, 'a Go' )
         end
 
         # There was no way to continue with the previous set, start a new one with
@@ -204,14 +172,10 @@ module CribbageGame
     end
 
     def complete
-      peg_player( 1, 'the last card' )
+      @scorer.peg_player( @turn, 1, 'the last card' )
 
       @engine.phase = PLAY_31_DONE
       @engine.delay_update 1.5
-    end
-
-    def peg_player( by, reason )
-      @engine.set_score( @turn, by, reason )
     end
   end
 end

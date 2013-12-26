@@ -1,5 +1,6 @@
-class FullPack
+# A complete pack for use in testing
 
+class FullPack
   include Cribbage
 
   HA = Card.new( Card::ACE, Card::HEARTS )

@@ -4,14 +4,14 @@ require 'spec_helper'
 
 describe Cribbage::Card do
 
-  it "should return the correct suit for each card" do
+  it 'should return the correct suit for each card' do
     expect( FullPack::HA.suit ).to eq 1
     expect( FullPack::CA.suit ).to eq 2
     expect( FullPack::DA.suit ).to eq 3
     expect( FullPack::SA.suit ).to eq 4
   end
 
-  it "should return the correct rank for each card" do
+  it 'should return the correct rank for each card' do
     expect( FullPack::HA.rank ).to eq 1
     expect( FullPack::H2.rank ).to eq 2
     expect( FullPack::H3.rank ).to eq 3
@@ -27,7 +27,7 @@ describe Cribbage::Card do
     expect( FullPack::HK.rank ).to eq 13
   end
 
-  it "should return the correct value for each card" do
+  it 'should return the correct value for each card' do
     expect( FullPack::HA.value ).to eq 1
     expect( FullPack::H2.value ).to eq 2
     expect( FullPack::H3.value ).to eq 3
@@ -43,14 +43,14 @@ describe Cribbage::Card do
     expect( FullPack::HK.value ).to eq 10
   end
 
-  it "should correctly name all suits" do
+  it 'should correctly name all suits' do
     expect( FullPack::HA.suit_name ).to eq 'Hearts'
     expect( FullPack::CA.suit_name ).to eq 'Clubs'
     expect( FullPack::DA.suit_name ).to eq 'Diamonds'
     expect( FullPack::SA.suit_name ).to eq 'Spades'
   end
 
-  it "should correctly name all ranks" do
+  it 'should correctly name all ranks' do
     expect( FullPack::HA.rank_name ).to eq 'Ace'
     expect( FullPack::H2.rank_name ).to eq '2'
     expect( FullPack::H3.rank_name ).to eq '3'
@@ -66,7 +66,7 @@ describe Cribbage::Card do
     expect( FullPack::HK.rank_name ).to eq 'King'
   end
 
-  it "should correctly name all cards" do
+  it 'should correctly name all cards' do
     expect( FullPack::HA.name ).to eq 'Ace of Hearts'
     expect( FullPack::H2.name ).to eq '2 of Hearts'
     expect( FullPack::H3.name ).to eq '3 of Hearts'
@@ -86,14 +86,14 @@ describe Cribbage::Card do
     expect( FullPack::SA.name ).to eq 'Ace of Spades'
   end
 
-  it "should render a card as a string" do
+  it 'should render a card as a string' do
     expect( "#{FullPack::HA}" ).to eq FullPack::HA.name
     expect( "#{FullPack::CA}" ).to eq FullPack::CA.name
     expect( "#{FullPack::DA}" ).to eq FullPack::DA.name
     expect( "#{FullPack::SA}" ).to eq FullPack::SA.name
   end
 
-  it "should have a correct short name for all cards" do
+  it 'should have a correct short name for all cards' do
     expect( FullPack::HA.short_name ).to eq 'AH'
     expect( FullPack::H2.short_name ).to eq '2H'
     expect( FullPack::H3.short_name ).to eq '3H'
@@ -113,17 +113,17 @@ describe Cribbage::Card do
     expect( FullPack::SA.short_name ).to eq 'AS'
   end
 
-  # This test is for completeness, unfortunately not all fonts support the
+  # These tests are for completeness, unfortunately not all fonts support the
   # Unicode characters necessary for the suit symbols.
 
-  it "return the correct character for all suits" do
+  it 'should return the correct character for all suits' do
     expect( FullPack::HA.suit_char ).to eq "\u2665"
     expect( FullPack::CA.suit_char ).to eq "\u2663"
     expect( FullPack::DA.suit_char ).to eq "\u2666"
     expect( FullPack::SA.suit_char ).to eq "\u2660"
   end
 
-  it "should have a correct display name for all cards" do
+  it 'should have a correct display name for all cards' do
     expect( FullPack::HA.display_name ).to eq "A\u2665"
     expect( FullPack::H2.display_name ).to eq "2\u2665"
     expect( FullPack::H3.display_name ).to eq "3\u2665"

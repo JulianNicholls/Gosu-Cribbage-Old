@@ -3,7 +3,6 @@
 #   Return whether a given position is inside it.
 
 module Region
-
   def set_area( left, top, width, height )
     @left, @top     = left, top
     @width, @height = width, height
@@ -21,6 +20,8 @@ module Region
   # Return whether a pair or array of co-ordinates is inside this region.
 
   def inside?( x, y = nil )
+    return false if x.nil?
+
     if x.is_a? Array
       x[0].between?( @left, @left + @width ) &&
       x[1].between?( @top, @top + @height )
@@ -30,8 +31,7 @@ module Region
     end
   end
 
-protected
+  protected
 
   attr_reader :left, :top, :width, :height
-
 end

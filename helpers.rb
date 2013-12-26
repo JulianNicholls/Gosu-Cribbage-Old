@@ -1,18 +1,20 @@
 require 'gosu'
 
 module CribbageGame
+  # Helper functions
+
   module Helpers
+    @delay = nil
 
     def other_player( turn )
-      (turn == :player) ? :cpu : :player
+      turn == :player ? :cpu : :player
     end
 
     def player_name( turn )
-      (turn == :player) ? 'Player' : 'CPU'
+      turn == :player ? 'Player' : 'CPU'
     end
 
-
-    def set_delay( length )
+    def delay_update( length )
       @delay = Time.now + length
     end
 
@@ -23,14 +25,12 @@ module CribbageGame
       false
     end
 
-
     def load_images( window )
       {
         back:  Gosu::Image.new( window, 'media/CardBack.png', true ),
         front: Gosu::Image.new( window, 'media/CardFront.png', true )
       }
     end
-
 
     def load_fonts( window )
       {
@@ -42,6 +42,18 @@ module CribbageGame
       }
     end
 
+    def set_colours
+      {
+        baize:      Gosu::Color.new( 0xff007000 ),
+        watermark:  Gosu::Color.new( 0x20000000 ),
 
+        score_bkgr: Gosu::Color.new( 0xff005000 ),
+        score_text: Gosu::Color.new( 0xffffcc00 ),
+        score_num:  Gosu::Color.new( 0xffffff00 ),
+
+        arrow:      Gosu::Color.new( 0xf0ffcc00 ),
+        discard:    Gosu::Color.new( 0xff104ec2 )
+      }
+    end
   end
 end

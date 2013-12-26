@@ -3,14 +3,14 @@ require './constants'
 require './helpers'
 
 module CribbageGame
-  class Player31
+  # Handle playing to 31 in the game of Cribbage
 
+  class Player31
     include Constants
     include Helpers
 
     TOP  = COMPUTER_TOP + CARD_HEIGHT + CARD_GAP * 2
     LEFT = MARGIN
-
 
     def initialize( engine, p_hand, c_hand, start_with )
       @engine = engine
@@ -22,7 +22,6 @@ module CribbageGame
 
       start_set
     end
-
 
     def update( position )
       if @turn == :player
@@ -40,23 +39,22 @@ module CribbageGame
       false   # User didn't select
     end
 
-
     def draw
       left = LEFT + (CARD_WIDTH + 3 * CARD_GAP) * @cur_set
-      @engine.fonts[:score].draw( 'Count', left, TOP - 20, 1, 1, 1, SCORE_TEXT_COLOUR )
-      @engine.fonts[:score].draw( @total,  left + 55, TOP - 20, 1, 1, 1, SCORE_NUM_COLOUR )
+      font = @engine.fonts[:score]
+
+      font.draw( 'Count', left, TOP - 20, 1, 1, 1, @engine.colours[:score_text] )
+      font.draw( @total,  left + 55, TOP - 20, 1, 1, 1, @engine.colours[:score_num] )
 
       @card_sets.each do |run|
         run.each { |c| c.draw( orient: :face_up ) }
       end
     end
 
-
     def draw_hands
       @player_hand.draw( orient: :face_up )
       @cpu_hand.draw( orient: :peep )     # :face_down
     end
-
 
     def start_set
       @total    = 0
@@ -66,8 +64,7 @@ module CribbageGame
       @top, @left  = TOP, LEFT + (CARD_WIDTH + 3 * CARD_GAP) * @cur_set
     end
 
-
-    def player_select position
+    def player_select( position )
       @player_hand.cards.each_with_index do |c, idx|
         if c.inside?( position ) && @total + c.value <= 31
           @player_hand.cards.slice!( idx )
@@ -79,7 +76,6 @@ module CribbageGame
       false
     end
 
-
     # Select a 'good' card for the CPU.
     #   If it's possible to get to 15 or 31, do that, or
     #   If we can form a pair below 31, otherwise
@@ -88,7 +84,7 @@ module CribbageGame
     # The player's cards will NEVER be taken into consideration!
 
     def cpu_select
-      raise "cpu_select called with no cards in CPU hand" if @cpu_hand.cards.length == 0
+      fail 'cpu_select called with no cards left' if @cpu_hand.cards.length == 0
 
       highest, hidx = 0, 0
 
@@ -99,7 +95,7 @@ module CribbageGame
 
         if @total + val <= 31
           if @total + val == 15 || @total + val == 31 ||
-           (this_set.length > 0 && c.rank == this_set[-1].rank)
+           (this_set.length > 0 && c.rank == this_set.last.rank)
             @cpu_hand.cards.slice!( idx )
             add_card_to_set c.dup
             return
@@ -115,7 +111,6 @@ module CribbageGame
       @cpu_hand.cards.slice!( hidx )
       add_card_to_set the_card
     end
-
 
     def add_card_to_set( card )
       card.set_position( @left, @top )
@@ -133,45 +128,46 @@ module CribbageGame
       end
     end
 
-
     def score_last_cards
       this_set  = @card_sets[@cur_set]
-      top       = this_set[-1]    # Last card played
+      top       = this_set.last
 
-      score_current_player( 2, @total.to_s ) if @total == 15 || @total == 31
+      peg_player( 2, @total.to_s ) if @total == 15 || @total == 31
 
-      score_current_player( 6, 'a Double Pair Royal' ) if this_set.length >= 4 && this_set[-4..-2].all? { |c| c.rank == top.rank }
+      if this_set.length >= 4
+        peg_player( 6, 'a Double Pair Royal' ) if this_set[-4..-2].all? { |c| c.rank == top.rank }
+      end
 
       if this_set.length >= 3
-        score_current_player( 4, 'a Pair Royal' ) if this_set[-3..-2].all? { |c| c.rank == top.rank }
+        peg_player( 4, 'a Pair Royal' ) if this_set[-3..-2].all? { |c| c.rank == top.rank }
         score_runs
       end
 
-      score_current_player( 2, 'a Pair' ) if this_set.length >= 2 && this_set[-2].rank == top.rank
+      if this_set.length >= 3
+        peg_player( 2, 'a Pair' ) if this_set[-2].rank == top.rank
+      end
     end
-
 
     def score_runs
       this_set = @card_sets[@cur_set]
 
       this_set.length.downto(3) do |n|
-        if run?( this_set[-n..-1].sort_by &:rank )
-          score_current_player( n, "a Run of #{n}" )
+        if run?( this_set[-n..-1].sort_by( &:rank ) )
+          peg_player( n, "a Run of #{n}" )
           return
         end
       end
     end
 
     def run?( cards )
-      (1..cards.size-1).all? { |idx| cards[idx].rank == cards[idx-1].rank + 1 }
+      (1..cards.size - 1).all? { |idx| cards[idx].rank == cards[idx - 1].rank + 1 }
     end
-
 
     # Attempt to swap to the other player
 
     def set_turn
       if @turn == :player && @cpu_hand.cards.any? { |c| @total + c.value <= 31 }
-        @engine.set_delay 0.5
+        @engine.delay_update 0.5
         @turn = :cpu
       elsif @turn == :cpu && @player_hand.cards.any? { |c| @total + c.value <= 31 }
         @turn = :player
@@ -179,7 +175,6 @@ module CribbageGame
         check_all_cards
       end
     end
-
 
     # At this point, we can't swap to the other player because they don't have a
     # card that they can lay.
@@ -190,10 +185,10 @@ module CribbageGame
 
       if all_cards.length > 0
         if all_cards.any? { |c| @total + c.value <= 31 }
-          @engine.set_delay( 1 ) if @turn == :cpu
+          @engine.delay_update( 1 ) if @turn == :cpu
           return  # Continue with same player
         else
-          score_current_player( 1, 'a Go' )
+          peg_player( 1, 'a Go' )
         end
 
         # There was no way to continue with the previous set, start a new one with
@@ -202,24 +197,21 @@ module CribbageGame
         start_set
 
         @turn = other_player @turn
-        @engine.set_delay( 1 ) if @turn == :cpu
+        @engine.delay_update( 1 ) if @turn == :cpu
       else      # No cards left, we're outta here!
         complete
       end
     end
 
-
     def complete
-      score_current_player( 1, 'a Go' )
+      peg_player( 1, 'the last card' )
 
-      @engine.set_phase PLAY_31_DONE
-      @engine.set_delay 1.5
+      @engine.phase = PLAY_31_DONE
+      @engine.delay_update 1.5
     end
 
-
-    def score_current_player( by, reason )
+    def peg_player( by, reason )
       @engine.set_score( @turn, by, reason )
     end
-
   end
 end

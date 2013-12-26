@@ -6,7 +6,6 @@ module Cribbage
   # class to hold a card. both rank and suit are 1-based.
 
   class Card
-
     attr_reader :suit, :rank
 
     HEARTS    = 1
@@ -18,81 +17,107 @@ module Cribbage
     TEN       = 10
     JACK      = 11
     QUEEN     = 12
-    KING      = 12+1  # Superstitious much?
+    KING      = 12 + 1  # Superstitious much?
 
     SUITS = %w{Hearts Clubs Diamonds Spades}
     RANKS = %w{Ace 2 3 4 5 6 7 8 9 Ten Jack Queen King}
-    SUIT_CHARS = "\u2665\u2663\u2666\u2660"   # Use with care, not all fonts have these characters
-
-    attr_reader :rank, :suit
+    SUIT_CHARS = "\u2665\u2663\u2666\u2660"   # Not all fonts have these
 
     def initialize( rank, suit )
       @rank, @suit = rank, suit
     end
 
-    def to_s; name; end
+    def to_s
+      name
+    end
 
-    def name;         "#{rank_name} of #{suit_name}";               end
+    def name
+      "#{rank_name} of #{suit_name}"
+    end
 
-    def short_name;   "#{rank_name.slice(0)}#{suit_name.slice(0)}"; end
+    def short_name
+      "#{rank_name.slice(0)}#{suit_name.slice(0)}"
+    end
 
     def display_name
       "#{rank == 10 ? '10' : rank_name.slice(0)}#{suit_char}"
     end
 
-    def rank_name;  RANKS[@rank - 1];       end
-    def suit_name;  SUITS[@suit - 1];       end
-    def suit_char;  SUIT_CHARS[@suit - 1];  end
+    def rank_name
+      RANKS[@rank - 1]
+    end
 
-    def value;    [rank, 10].min;   end     # Return 10 for 10, J, Q, K
+    def suit_name
+      SUITS[@suit - 1]
+    end
 
-    def inspect;  short_name; end
+    def suit_char
+      SUIT_CHARS[@suit - 1]
+    end
+
+    def value
+      [rank, 10].min
+    end     # Return 10 for 10, J, Q, K
+
+    def inspect
+      short_name
+    end
   end
 
-
+  # Card that can display itself
   class GosuCard < Card
-
     include Region
     include CribbageGame::Constants
 
-
     RED_COLOUR   = 0xffa00000
-    BLACK_COLOUR = 0xff000000
-
 
     def self.set_display( front, back, font )
-      @@back_image, @@front_image = back, front
-      @@font = font
-    end
+      @images = {
+        front:  front,
+        back:   back
+      }
 
+      @font = font
+    end
 
     def set_position( pos_left, pos_top )
       set_area( pos_left, pos_top, CARD_WIDTH, CARD_HEIGHT )
     end
 
+    class << self
+      attr_reader :images, :font
+    end
 
     def draw( options )
       orient = options[:orient] || :face_down
 
-      if orient == :face_down || orient == :peep
-        image = options[:back] || @@back_image
-        image.draw( left, top, 1 )
+      draw_image( options )
+
+      draw_text( options ) if orient == :face_up || orient == :peep
+    end
+
+    def draw_image( options )
+      if options[:orient] == :face_up
+        image = options[:front] || self.class.images[:front]
       else
-        image = options[:front] || @@front_image
-        image.draw( left, top, 1 )
+        image = options[:back] || self.class.images[:back]
       end
 
-      if orient == :face_up || orient == :peep
-        cfont = options[:font] || @@font
-        cfont.draw( display_name, left + 5, top + 5, 1, 1, 1, suit.odd? ? RED_COLOUR : Gosu::Color::BLACK )
-      end
+      image.draw( left, top, 1 )
+    end
+
+    def draw_text( options )
+      cfont = options[:font] || self.class.font
+      cfont.draw( display_name,
+                  left + 5, top + 5, 1,
+                  1, 1,
+                  suit.odd? ? RED_COLOUR : Gosu::Color::BLACK
+      )
     end
   end
-
 end
 
-
-if $0 == __FILE__
+if $PROGRAM_NAME == __FILE__
   pack = Cribbage::Pack.new
 
   53.times do

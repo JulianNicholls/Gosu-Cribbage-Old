@@ -1,13 +1,15 @@
 require 'gosu'
 
 module CribbageGame
-  module Constants
+  # Constants for the Cribbage Game
 
+  module Constants
     # Phases
 
     INITIAL_CUT       = 0
-    CPU_CUT           = 2
-    CUTS_MADE         = 4
+    INITIAL_RECUT     = 2
+    CPU_CUT           = 4
+    CUTS_MADE         = 6
     DEAL              = 8
     DISCARDING        = 10
     CUT_CARD          = 20
@@ -26,20 +28,6 @@ module CribbageGame
 
     MARGIN            = 12        # This replaces misuses of CARD_GAP
 
-
-    # Colours
-
-    BAIZE_COLOUR      = Gosu::Color.new( 0xff007000 )
-    WATERMARK_COLOUR  = Gosu::Color.new( 0x20000000 )
-
-    SCORE_BKGR_COLOUR = Gosu::Color.new( 0xff005000 )
-    SCORE_TEXT_COLOUR = Gosu::Color.new( 0xffffcc00 )
-    SCORE_NUM_COLOUR  = Gosu::Color.new( 0xffffff00 )
-
-    ARROW_COLOUR      = Gosu::Color.new( 0xf0ffcc00 )
-    DISCARD_COLOUR    = Gosu::Color.new( 0xff104ec2 )
-
-
     # Card Sizes
 
     CARD_HEIGHT       = 150
@@ -47,7 +35,6 @@ module CribbageGame
 
     CARD_GAP          = 12
     FANNED_GAP        = 25
-
 
     # Positions
 
@@ -71,7 +58,7 @@ module CribbageGame
     CRIB_LEFT         = PACK_LEFT - (CARD_WIDTH + MARGIN)
 
     BUTTON_HEIGHT     = 40
-    DISCARD_TOP       = PLAYER_TOP - BUTTON_HEIGHT*2        # Discard Button
+    DISCARD_TOP       = PLAYER_TOP - BUTTON_HEIGHT * 2      # Discard Button
     DISCARD_LEFT      = MARGIN * 3
 
     SCORE_TOP         = MARGIN                              # Score Position

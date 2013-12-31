@@ -61,75 +61,95 @@ module CribbageGame
       return if delaying
 
       case phase
-      when INITIAL_CUT
-        @instruction = { text: 'Cut for Deal', top: 400 }
+      when INITIAL_CUT    then  update_initial_cut
 
-        if @position && player_cut_card
-          delay_update 1
-          self.phase = CPU_CUT
-          @instruction = nil
-          @position = nil
-        end
+      when INITIAL_RECUT  then  update_recut
 
-      when INITIAL_RECUT
-        @instruction = { text: 'Draw, Cut Again', top: 400 }
-        @pack.reset
-        self.phase = INITIAL_CUT
-        delay_update 1
+      when CPU_CUT        then  update_cpu_cut
 
-      when CPU_CUT
-        cpu_cut_card
-        decide_dealer
-        delay_update 1.5
+      when CUTS_MADE      then  update_cuts_made
 
-      when CUTS_MADE
-        deal_hands
-        self.phase = DISCARDING
+      when DISCARDING     then  update_discarding
 
-      when DISCARDING
-        @instruction = { text: 'Click to Select for Discard' }
+      when TURN_CARD      then  update_turncard
 
-        if @discard_button.inside?( @position )
-          discard_crib_cards
-          @position = nil
-        else
-          select_discard
-        end
+      when PLAY_31        then  update_play31
 
-      when CUT_CARD
-        if @turn == :cpu
-          @instruction = { text: 'CPU is choosing Turn-up Card', left: 150 }
-          set_turn_card
-          delay_update 1.5
-          self.phase = PLAY_31
-        else
-          @instruction = { text: 'Click Pack for Turn-up Card', left: 150 }
+      when PLAY_31_DONE   then  self.phase = THE_SHOW
 
-          if @position && @pack.inside?( @position )
-            set_turn_card
-            @position  = nil
-
-            self.phase = PLAY_31
-          end
-        end
-
-        if phase == PLAY_31
-          @play31 = Player31.new( self, @player_hand, @cpu_hand, @turn )
-
-          # Two for his heels
-          @scores[@turn] += 2 if @turn_card.rank == Cribbage::Card::JACK
-        end
-
-      when PLAY_31
-        @instruction  = nil
-        @position     = nil if @play31.update( @position )
-
-      when PLAY_31_DONE
-        self.phase = THE_SHOW
-
-      when THE_SHOW
-        @turn = other_player @dealer
+      when THE_SHOW       then  @turn = other_player @dealer
       end
+    end
+
+    def update_initial_cut
+      @instruction = { text: 'Cut for Deal', top: 400 }
+
+      if @position && player_cut_card
+        delay_update 1
+        self.phase = CPU_CUT
+        @instruction = nil
+        @position = nil
+      end
+    end
+
+    def update_recut
+      @instruction = { text: 'Draw, Cut Again', top: 400 }
+      @pack.reset
+      self.phase = INITIAL_CUT
+      delay_update 1
+    end
+
+    def update_cpu_cut
+      cpu_cut_card
+      decide_dealer
+      delay_update 1.5
+    end
+
+    def update_cuts_made
+      deal_hands
+      self.phase = DISCARDING
+    end
+
+    def update_discarding
+      @instruction = { text: 'Click to Select for Discard' }
+
+      if @discard_button.inside?( @position )
+        discard_crib_cards
+        @position = nil
+      else
+        select_discard
+      end
+    end
+
+    def update_turncard
+      if @turn == :cpu
+        @instruction = { text: 'CPU is choosing Turn-up Card', left: 150 }
+        set_turn_card
+        delay_update 1.5
+        self.phase = PLAY_31
+      else
+        @instruction = { text: 'Click Pack for Turn-up Card', left: 150 }
+
+        if @position && @pack.inside?( @position )
+          set_turn_card
+          @position  = nil
+
+          self.phase = PLAY_31
+        end
+      end
+
+      if phase == PLAY_31
+        @play31 = Player31.new( self, @player_hand, @cpu_hand, @turn )
+
+        # Two for his heels
+        @scores[@turn] += 2 if @turn_card.rank == Cribbage::Card::JACK
+      end
+    end
+
+    def update_play31
+      @instruction  = nil
+      @play31.update( @position )
+      @position     = nil
     end
 
     def draw
@@ -382,7 +402,7 @@ module CribbageGame
 
       set_hand_positions
 
-      self.phase = CUT_CARD
+      self.phase = TURN_CARD
     end
 
     def player_discard_to_crib

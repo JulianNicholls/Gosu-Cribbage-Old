@@ -12,7 +12,7 @@ module CribbageGame
     CUTS_MADE         = 6
     DEAL              = 8
     DISCARDING        = 10
-    CUT_CARD          = 20
+    TURN_CARD         = 20
     PLAY_31           = 30
     PLAY_31_DONE      = 35
     THE_SHOW          = 40

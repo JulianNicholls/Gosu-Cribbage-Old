@@ -28,18 +28,11 @@ module CribbageGame
 
     def update( position )
       if @turn == :player
-        if position
-          selected = player_select position
-
-          set_turn if selected
-          return selected
-        end
+        player_select( position )
       else
         cpu_select    # It will be possible because it's already been checked
         set_turn
       end
-
-      false   # User didn't select
     end
 
     def draw
@@ -68,15 +61,15 @@ module CribbageGame
     end
 
     def player_select( position )
+      return if position.nil?
+
       @player_hand.cards.each_with_index do |c, idx|
         if c.inside?( position ) && @total + c.value <= 31
           @player_hand.cards.slice!( idx )
           add_card_to_set c.dup
-          return true
+          set_turn
         end
       end
-
-      false
     end
 
     # Select a 'good' card for the CPU.
@@ -87,8 +80,6 @@ module CribbageGame
     # The player's cards will NEVER be taken into consideration!
 
     def cpu_select
-      fail 'cpu_select called with no cards left' if @cpu_hand.cards.length == 0
-
       highest, hidx = 0, 0
 
       this_set = @card_sets[@cur_set]
@@ -98,9 +89,8 @@ module CribbageGame
 
         if @total + val <= 31
           if @total + val == 15 || @total + val == 31 ||
-           (this_set.length > 0 && c.rank == this_set.last.rank)
-            @cpu_hand.cards.slice!( idx )
-            add_card_to_set c.dup
+             (this_set.length > 0 && c.rank == this_set.last.rank)
+            add_cpu_card_to_set( idx )
             return
           end
 
@@ -110,8 +100,12 @@ module CribbageGame
 
       # No excellent card, so use the highest layable card
 
-      the_card = @cpu_hand.cards[hidx].dup
-      @cpu_hand.cards.slice!( hidx )
+      add_cpu_card_to_set( hidx )
+    end
+
+    def add_cpu_card_to_set( idx )
+      the_card = @cpu_hand.cards[idx].dup
+      @cpu_hand.cards.slice!( idx )
       add_card_to_set the_card
     end
 
@@ -151,24 +145,20 @@ module CribbageGame
     def check_all_cards
       all_cards = @cpu_hand.cards + @player_hand.cards
 
-      if all_cards.length > 0
-        if all_cards.any? { |c| @total + c.value <= 31 }
-          @engine.delay_update( 1 ) if @turn == :cpu
-          return  # Continue with same player
-        else
-          @scorer.peg_player( @turn, 1, 'a Go' )
-        end
-
+      if all_cards.length == 0
+        complete
+      elsif !all_cards.any? { |c| @total + c.value <= 31 }
         # There was no way to continue with the previous set, start a new one with
         # the other player.
+
+        @scorer.peg_player( @turn, 1, 'a Go' )
 
         start_set
 
         @turn = other_player @turn
-        @engine.delay_update( 1 ) if @turn == :cpu
-      else      # No cards left, we're outta here!
-        complete
       end
+
+      @engine.delay_update( 1 ) if @turn == :cpu
     end
 
     def complete

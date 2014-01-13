@@ -18,6 +18,18 @@ module CribbageGame
     attr_reader   :fonts, :colours
     attr_accessor :phase
 
+    PHASES = {
+      INITIAL_CUT     =>  :update_initial_cut,
+      INITIAL_RECUT   =>  :update_recut,
+      CPU_CUT         =>  :update_cpu_cut,
+      CUTS_MADE       =>  :update_cuts_made,
+      DISCARDING      =>  :update_discarding,
+      TURN_CARD       =>  :update_turncard,
+      PLAY_31         =>  :update_play31,
+      PLAY_31_DONE    =>  :update_play31_done,
+      THE_SHOW        =>  :update_theshow
+    }
+
     def initialize
       # Width x Height, not fullscreen, 100ms between 'update's
       super( WIDTH, HEIGHT, false, 100 )
@@ -60,24 +72,10 @@ module CribbageGame
     def update
       return if delaying
 
-      case phase
-      when INITIAL_CUT    then  update_initial_cut
-
-      when INITIAL_RECUT  then  update_recut
-
-      when CPU_CUT        then  update_cpu_cut
-
-      when CUTS_MADE      then  update_cuts_made
-
-      when DISCARDING     then  update_discarding
-
-      when TURN_CARD      then  update_turncard
-
-      when PLAY_31        then  update_play31
-
-      when PLAY_31_DONE   then  self.phase = THE_SHOW
-
-      when THE_SHOW       then  @turn = other_player @dealer
+      if PHASES.key? phase
+        send( PHASES[phase] )
+      else
+        fail "Strange Phase: #{phase}"
       end
     end
 
@@ -152,6 +150,14 @@ module CribbageGame
       @position     = nil
     end
 
+    def update_play31_done
+      self.phase = THE_SHOW
+    end
+
+    def update_theshow
+      @turn = other_player @dealer
+    end
+
     def draw
 #      puts "Drawing..."
       draw_background
@@ -222,25 +228,16 @@ module CribbageGame
       font    = @fonts[:score]
       width, height = font.measure( player )
 
-      font.draw(
-        'CPU', SCORE_LEFT, SCORE_TOP, 1,
-        1, 1, @colours[:score_text]
-      )
+      font.draw( 'CPU', SCORE_LEFT, SCORE_TOP, 1, 1, 1, @colours[:score_text] )
 
-      font.draw(
-        @scores[:cpu], SCORE_LEFT + width, SCORE_TOP, 1,
-        1, 1, @colours[:score_num]
-      )
+      font.draw( @scores[:cpu], SCORE_LEFT + width, SCORE_TOP, 1,
+                 1, 1, @colours[:score_num] )
 
-      font.draw(
-        player, SCORE_LEFT, SCORE_TOP + height, 1,
-        1, 1, @colours[:score_text]
-      )
+      font.draw( player, SCORE_LEFT, SCORE_TOP + height, 1,
+                 1, 1, @colours[:score_text] )
 
-      font.draw(
-        @scores[:player], SCORE_LEFT + width, SCORE_TOP + height, 1,
-        1, 1, @colours[:score_num]
-      )
+      font.draw( @scores[:player], SCORE_LEFT + width, SCORE_TOP + height, 1,
+                 1, 1, @colours[:score_num] )
 
       if @score_reason && Time.now < @score_reason_timeout
         draw_score_reason
@@ -266,22 +263,18 @@ module CribbageGame
     def draw_instruction
 #      puts "Drawing Instructions #{@instruction[:text]}..."
 
-      font   = @fonts[:instructions]
+      font          = @fonts[:instructions]
       width, height = font.measure( @instruction[:text] )
-      margin = font.text_width( 'X' )
+      margin        = font.text_width( 'X' )
 
       left = @instruction[:left] || [MID_X - (width / 2), 3].max
       top  = @instruction[:top]  || INSTRUCTION_TOP
 
-      draw_rectangle(
-        left - margin, top, width + margin * 2, height * 2, 6,
-        @colours[:watermark]
-      )
+      draw_rectangle( left - margin, top, width + margin * 2, height * 2, 6,
+                      @colours[:watermark] )
 
-      font.draw(
-        @instruction[:text], left, top + height / 2, 7,
-        1, 1, Gosu::Color::WHITE
-      )
+      font.draw( @instruction[:text], left, top + height / 2, 7,
+                 1, 1, Gosu::Color::WHITE )
     end
 
     def draw_pack_fan

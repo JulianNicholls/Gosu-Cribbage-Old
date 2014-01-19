@@ -11,8 +11,6 @@ module CribbageGame
     include Constants
     include Helpers
 
-    PLAY_POS = Point.new( MARGIN, COMPUTER_HAND.y + CARD_SIZE.height + CARD_GAP * 2 )
-
     def initialize( engine, p_hand, c_hand, start_with )
       @engine = engine
       @scorer = Scorer31.new( engine )
@@ -35,11 +33,11 @@ module CribbageGame
     end
 
     def draw
-      left = PLAY_POS.x + (CARD_SIZE.width + 3 * CARD_GAP) * @cur_set
+      left = PLAY31_POS.x + (CARD_SIZE.width + 3 * CARD_GAP) * @cur_set
       font = @engine.fonts[:score]
 
-      font.draw( 'Count', left, PLAY_POS.y - 20, 1, 1, 1, @engine.colours[:score_text] )
-      font.draw( @total,  left + 55, PLAY_POS.y - 20, 1, 1, 1, @engine.colours[:score_num] )
+      font.draw( 'Count', left, PLAY31_POS.y - 20, 1, 1, 1, @engine.colours[:score_text] )
+      font.draw( @total,  left + 55, PLAY31_POS.y - 20, 1, 1, 1, @engine.colours[:score_num] )
 
       @card_sets.each do |run|
         run.each { |c| c.draw( orient: :face_up ) }
@@ -56,7 +54,7 @@ module CribbageGame
       @cur_set += 1
       @card_sets[@cur_set] = []
 
-      @position = PLAY_POS.offset( (CARD_SIZE.width + 3 * CARD_GAP) * @cur_set, 0 )
+      @position = PLAY31_POS.offset( (CARD_SIZE.width + 3 * CARD_GAP) * @cur_set, 0 )
     end
 
     def player_select( position )

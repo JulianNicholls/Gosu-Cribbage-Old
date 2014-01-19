@@ -31,6 +31,8 @@ module Region
 
   protected
 
+  attr_reader :point, :size
+
   def left
     @point.x
   end

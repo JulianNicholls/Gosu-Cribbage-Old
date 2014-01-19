@@ -195,28 +195,25 @@ module CribbageGame
     end
 
     def draw_score_box
-      draw_rectangle(
-        Point.new( SCORE.x - MARGIN, 1 ),
-        Size.new( WIDTH - (SCORE.x - MARGIN), SCORE_BOX_HEIGHT ), 0,
-        @colours[:score_text]
-      )
+      box  = Point.new( SCORE.x - MARGIN, 1 )
+      size = Size.new( WIDTH - (SCORE.x - MARGIN), SCORE_BOX_HEIGHT )
 
-      draw_rectangle(
-        Point.new( (SCORE.x - MARGIN) + 1, 2 ),
-        Size.new( WIDTH - (SCORE.x - MARGIN) - 2, SCORE_BOX_HEIGHT - 2 ), 0,
-        @colours[:score_bkgr]
-      )
+      draw_rectangle( box, size, 0, @colours[:score_text] )
+
+      draw_rectangle( box.offset( 1, 1 ), size.inflate( -2, -2 ), 0,
+                      @colours[:score_bkgr] )
     end
 
     def draw_grid
+      vert  = Size.new( 1, HEIGHT )
+      horiz = Size.new( WIDTH, 1 )
+
       0.step( WIDTH - 50, 50 ).each do |l|
-        draw_rectangle( Point.new( l, 0 ), Size.new( 2, HEIGHT ), 0,
-                        @colours[:watermark] )
+        draw_rectangle( Point.new( l, 0 ), vert, 0, @colours[:watermark] )
       end
 
       0.step( HEIGHT - 50, 50 ).each do |t|
-        draw_rectangle( Point.new( 0, t ), Size.new( WIDTH, 2 ), 0,
-                        @colours[:watermark] )
+        draw_rectangle( Point.new( 0, t ), horiz, 0, @colours[:watermark] )
       end
     end
 
@@ -344,8 +341,9 @@ module CribbageGame
     end
 
     def cpu_cut_card
-      point =
-        Point.new( rand( FAN_POS.x..(FAN_POS.x + 51 * CARD_GAP) ), PACK_POS.y + 10 )
+      point = Point.new(
+        rand( FAN_POS.x..(FAN_POS.x + 51 * CARD_GAP) ),
+        PACK_POS.y + 10 )
 
       @fan_cards[:cpu] = @pack.card_from_fan( point, :cpu )
     end

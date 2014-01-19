@@ -52,6 +52,8 @@ module CribbageGame
 
     CRIB_POS          = PACK_POS.offset( -(CARD_SIZE.width + MARGIN), 0 )   # Crib
 
+    PLAY31_POS        = COMPUTER_HAND.offset( 0, CARD_SIZE.height + CARD_GAP * 2 )
+
     BUTTON_HEIGHT     = 40
     DISCARD_BUTTON    = Point.new( MARGIN * 3, PLAYER_HAND.y - BUTTON_HEIGHT * 2 )     # Discard Button
 

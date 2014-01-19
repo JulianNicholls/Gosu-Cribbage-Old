@@ -58,8 +58,8 @@ class Button
 
     # Right and Bottom Shadow
 
-    @window.draw_rectangle( Point.new( left + width, top + 3 ), Size.new( 4, height ), 1, darker )
-    @window.draw_rectangle( Point.new( left + 3, top + height ), Size.new( width, 4 ), 1, darker )
+    @window.draw_rectangle( point.offset( width, 3 ), Size.new( 4, height ), 1, darker )
+    @window.draw_rectangle( point.offset( 3, height ), Size.new( width, 4 ), 1, darker )
   end
 
   def show

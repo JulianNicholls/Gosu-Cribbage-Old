@@ -11,9 +11,6 @@ module CribbageGame
     include Constants
     include Helpers
 
-    TOP  = COMPUTER_TOP + CARD_HEIGHT + CARD_GAP * 2
-    LEFT = MARGIN
-
     def initialize( engine, p_hand, c_hand, start_with )
       @engine = engine
       @scorer = Scorer31.new( engine )
@@ -36,11 +33,11 @@ module CribbageGame
     end
 
     def draw
-      left = LEFT + (CARD_WIDTH + 3 * CARD_GAP) * @cur_set
+      left = PLAY31_POS.x + (CARD_SIZE.width + 3 * CARD_GAP) * @cur_set
       font = @engine.fonts[:score]
 
-      font.draw( 'Count', left, TOP - 20, 1, 1, 1, @engine.colours[:score_text] )
-      font.draw( @total,  left + 55, TOP - 20, 1, 1, 1, @engine.colours[:score_num] )
+      font.draw( 'Count', left, PLAY31_POS.y - 20, 1, 1, 1, @engine.colours[:score_text] )
+      font.draw( @total,  left + 55, PLAY31_POS.y - 20, 1, 1, 1, @engine.colours[:score_num] )
 
       @card_sets.each do |run|
         run.each { |c| c.draw( orient: :face_up ) }
@@ -57,7 +54,7 @@ module CribbageGame
       @cur_set += 1
       @card_sets[@cur_set] = []
 
-      @top, @left  = TOP, LEFT + (CARD_WIDTH + 3 * CARD_GAP) * @cur_set
+      @position = PLAY31_POS.offset( (CARD_SIZE.width + 3 * CARD_GAP) * @cur_set, 0 )
     end
 
     def player_select( position )
@@ -66,7 +63,7 @@ module CribbageGame
       @player_hand.cards.each_with_index do |c, idx|
         if c.inside?( position ) && @total + c.value <= 31
           @player_hand.cards.slice!( idx )
-          add_card_to_set c.dup
+          add_card_to_set( c.dup )
           set_turn
         end
       end
@@ -106,11 +103,11 @@ module CribbageGame
     def add_cpu_card_to_set( idx )
       the_card = @cpu_hand.cards[idx].dup
       @cpu_hand.cards.slice!( idx )
-      add_card_to_set the_card
+      add_card_to_set( the_card )
     end
 
     def add_card_to_set( card )
-      card.set_position( @left, @top )
+      card.set_position( @position )
 
       @card_sets[@cur_set] << card
       @total += card.value
@@ -120,8 +117,7 @@ module CribbageGame
       if @total == 31
         start_set
       else
-        @top  += FANNED_GAP
-        @left += FANNED_GAP
+        @position.move_by!( FANNED_GAP, FANNED_GAP )
       end
     end
 

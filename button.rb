@@ -21,13 +21,12 @@ class Button
     @visible        = options[:visible] || false
     @colour         = options[:colour]
 
-    # If the width and/or height is not specified then measure the font and
-    # the button text
+    # If the size is not specified then measure the font and the button text
 
-    options[:width]  ||= @font.text_width( text + 'xx', 1 )
-    options[:height] ||= @font.height * 1.5
+    options[:size] ||=
+      Size.new( @font.text_width( text + 'xx', 1 ), @font.height * 1.5 )
 
-    set_area( options[:left], options[:top], options[:width], options[:height] )
+    set_area( options[:point], options[:size] )
     @visible = visible
   end
 
@@ -38,9 +37,9 @@ class Button
 
     # Centre the text on the button
 
-    f_width, f_height = @font.measure( @text )
-    x_margin = (width  - f_width) / 2
-    y_margin = (height - f_height) / 2
+    size = @font.measure( @text )
+    x_margin = (width  - size.width) / 2
+    y_margin = (height - size.height) / 2
 
     @font.draw( @text, left + x_margin, top + y_margin, 1 )
   end
@@ -59,8 +58,8 @@ class Button
 
     # Right and Bottom Shadow
 
-    @window.draw_rectangle( left + width, top + 3, 4, height, 1, darker )
-    @window.draw_rectangle( left + 3, top + height, width, 4, 1, darker )
+    @window.draw_rectangle( point.offset( width, 3 ), Size.new( 4, height ), 1, darker )
+    @window.draw_rectangle( point.offset( 3, height ), Size.new( width, 4 ), 1, darker )
   end
 
   def show

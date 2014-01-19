@@ -26,43 +26,36 @@ module CribbageGame
     MID_X             = WIDTH / 2
     MID_Y             = HEIGHT / 2
 
-    MARGIN            = 12        # This replaces misuses of CARD_GAP
+    MARGIN            = 12
 
     # Card Sizes
 
-    CARD_HEIGHT       = 150
-    CARD_WIDTH        = 100
+    CARD_SIZE         = Size.new( 100, 150 )
 
     CARD_GAP          = 12
     FANNED_GAP        = 25
 
     # Positions
 
-    WATERMARK_LEFT    = WIDTH / 12
-    WATERMARK_TOP     = MID_Y - HEIGHT / 6
+    WATERMARK         = Point.new( WIDTH / 12, MID_Y - HEIGHT / 6 )
 
     INSTRUCTION_TOP   = MID_Y + HEIGHT / 12
 
-    FAN_LEFT          = 50
+    # Hand positions
 
-    COMPUTER_TOP      = MARGIN    # Computer Hand
-    COMPUTER_LEFT     = MARGIN
+    COMPUTER_HAND     = Point.new( MARGIN, MARGIN )
+    PLAYER_HAND       = Point.new( MARGIN, HEIGHT - (CARD_SIZE.height + MARGIN) )
 
-    PLAYER_TOP        = HEIGHT - (CARD_HEIGHT + MARGIN)     # Player Hand
-    PLAYER_LEFT       = MARGIN
+    PACK_POS          = Point.new( WIDTH - (CARD_SIZE.width + MARGIN), MID_Y - (CARD_SIZE.height / 2) )         # Spare Pack
 
-    PACK_TOP          = MID_Y - (CARD_HEIGHT / 2)           # Spare Pack
-    PACK_LEFT         = WIDTH - (CARD_WIDTH + MARGIN)
+    FAN_POS           = Point.new( 50, PACK_POS.y )
 
-    CRIB_TOP          = PACK_TOP                            # Crib
-    CRIB_LEFT         = PACK_LEFT - (CARD_WIDTH + MARGIN)
+    CRIB_POS          = PACK_POS.offset( -(CARD_SIZE.width + MARGIN), 0 )   # Crib
 
     BUTTON_HEIGHT     = 40
-    DISCARD_TOP       = PLAYER_TOP - BUTTON_HEIGHT * 2      # Discard Button
-    DISCARD_LEFT      = MARGIN * 3
+    DISCARD_BUTTON    = Point.new( MARGIN * 3, PLAYER_HAND.y - BUTTON_HEIGHT * 2 )     # Discard Button
 
-    SCORE_TOP         = MARGIN                              # Score Position
-    SCORE_LEFT        = WIDTH - CARD_WIDTH
+    SCORE             = Point.new( WIDTH - CARD_SIZE.width, MARGIN )    # Score Position
     SCORE_BOX_HEIGHT  = 64
   end
 end

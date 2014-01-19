@@ -35,10 +35,11 @@ module Cribbage
       GosuHand.new( nil, cards.clone )
     end
 
-    def set_positions( left, top, gap )
+    def set_positions( point, gap )
+      pos = point.dup
       @cards.each do |c|
-        c.set_position( left, top )
-        left += gap
+        c.set_position( pos )
+        pos.move_by!( gap, 0 )
       end
     end
 

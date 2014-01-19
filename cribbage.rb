@@ -122,19 +122,9 @@ module CribbageGame
 
     def update_turncard
       if @turn == :cpu
-        @instruction = { text: 'CPU is choosing Turn-up Card', left: 150 }
-        set_turn_card
-        delay_update 1.5
-        self.phase = PLAY_31
+        update_cpu_turncard
       else
-        @instruction = { text: 'Click Pack for Turn-up Card', left: 150 }
-
-        if @position && @pack.inside?( @position )
-          set_turn_card
-          @position  = nil
-
-          self.phase = PLAY_31
-        end
+        update_player_turncard
       end
 
       if phase == PLAY_31
@@ -142,6 +132,24 @@ module CribbageGame
 
         # Two for his heels
         @scores[@turn] += 2 if @turn_card.rank == Cribbage::Card::JACK
+      end
+    end
+
+    def update_cpu_turncard
+      @instruction = { text: 'CPU is choosing Turn-up Card', left: 150 }
+      set_turn_card
+      delay_update 1.5
+      self.phase = PLAY_31
+    end
+
+    def update_player_turncard
+      @instruction = { text: 'Click Pack for Turn-up Card', left: 150 }
+
+      if @position && @pack.inside?( @position )
+        set_turn_card
+        @position  = nil
+
+        self.phase = PLAY_31
       end
     end
 
@@ -165,10 +173,7 @@ module CribbageGame
       draw_scores
       draw_instruction if @instruction
 
-      if @phase < DISCARDING
-        draw_pack_fan
-        return
-      end
+      draw_pack_fan && return if @phase < DISCARDING
 
       draw_hands
       draw_pack_and_turnup
@@ -225,21 +230,17 @@ module CribbageGame
     end
 
     def draw_scores
-      player  = 'Player '
-      font    = @fonts[:score]
-      size    = font.measure( player )
+      player    = 'Player '
+      font      = @fonts[:score]
+      size      = font.measure( player )
+      text, num = @colours[:score_text], @colours[:score_num]
 
-      font.draw( 'CPU', SCORE.x, SCORE.y, 1, 1, 1, @colours[:score_text] )
+      font.draw( 'CPU', SCORE.x, SCORE.y, 1, 1, 1, text )
+      font.draw( @scores[:cpu], SCORE.x + size.width, SCORE.y, 1, 1, 1, num )
 
-      font.draw( @scores[:cpu], SCORE.x + size.width, SCORE.y, 1,
-                 1, 1, @colours[:score_num] )
-
-      font.draw( player, SCORE.x, SCORE.y + size.height, 1,
-                 1, 1, @colours[:score_text] )
-
+      font.draw( player, SCORE.x, SCORE.y + size.height, 1, 1, 1, text )
       font.draw( @scores[:player], SCORE.x + size.width,
-                 SCORE.y + size.height, 1,
-                 1, 1, @colours[:score_num] )
+                 SCORE.y + size.height, 1, 1, 1, num )
 
       if @score_reason && Time.now < @score_reason_timeout
         draw_score_reason
@@ -312,7 +313,7 @@ module CribbageGame
       )
 
       @pack = Cribbage::GosuPack.new
-      @pack.set_position( PACK_POS )
+      @pack.place( PACK_POS )
       @pack.set_images( @images[:front], @images[:back] )
 
       @turn_card = nil
@@ -365,7 +366,7 @@ module CribbageGame
 
     def set_turn_card
       @turn_card = @pack.cut
-      @turn_card.set_position( PACK_POS.offset( 2, 2 ) )
+      @turn_card.place( PACK_POS.offset( 2, 2 ) )
     end
 
     def select_discard

@@ -17,16 +17,15 @@ module CribbageGame
       @player_hand, @cpu_hand = p_hand.clone, c_hand.clone
       @turn   = start_with
 
-      @card_sets = []
-      @cur_set   = -1
+      @card_sets, @cur_set = [], -1
 
       start_set
     end
 
     def update( position )
-      if @turn == :player
+      if @turn == :player && @player_hand.cards.size > 0
         player_select( position )
-      else
+      elsif @cpu_hand.cards.size > 0
         cpu_select    # It will be possible because it's already been checked
         set_turn
       end
@@ -36,12 +35,13 @@ module CribbageGame
       left = PLAY31_POS.x + (CARD_SIZE.width + 3 * CARD_GAP) * @cur_set
       font = @engine.fonts[:score]
 
-      font.draw( 'Count', left, PLAY31_POS.y - 20, 1, 1, 1, @engine.colours[:score_text] )
-      font.draw( @total,  left + 55, PLAY31_POS.y - 20, 1, 1, 1, @engine.colours[:score_num] )
+      font.draw( 'Count', left, PLAY31_POS.y - 20, 1,
+                 1, 1, @engine.colours[:score_text] )
 
-      @card_sets.each do |run|
-        run.each { |c| c.draw( orient: :face_up ) }
-      end
+      font.draw( @total,  left + 55, PLAY31_POS.y - 20, 1,
+                 1, 1, @engine.colours[:score_num] )
+
+      @card_sets.each { |run| run.each { |c| c.draw( orient: :face_up ) } }
     end
 
     def draw_hands
@@ -79,17 +79,11 @@ module CribbageGame
     def cpu_select
       highest, hidx = 0, 0
 
-      this_set = @card_sets[@cur_set]
-
       @cpu_hand.cards.each_with_index do |c, idx|
         val = c.value
 
         if @total + val <= 31
-          if @total + val == 15 || @total + val == 31 ||
-             (this_set.length > 0 && c.rank == this_set.last.rank)
-            add_cpu_card_to_set( idx )
-            return
-          end
+          add_cpu_card_to_set( idx ) && return if excellent?( c )
 
           highest, hidx = val, idx if val > highest
         end
@@ -100,6 +94,13 @@ module CribbageGame
       add_cpu_card_to_set( hidx )
     end
 
+    def excellent?( card )
+      this_set  = @card_sets[@cur_set]
+
+      @total + card.value == 15 || @total + card.value == 31 ||
+      (this_set.length > 0 && card.rank == this_set.last.rank)
+    end
+
     def add_cpu_card_to_set( idx )
       the_card = @cpu_hand.cards[idx].dup
       @cpu_hand.cards.slice!( idx )
@@ -107,7 +108,7 @@ module CribbageGame
     end
 
     def add_card_to_set( card )
-      card.set_position( @position )
+      card.place( @position )
 
       @card_sets[@cur_set] << card
       @total += card.value

@@ -51,15 +51,17 @@ class Button
     lighter = Gosu::Color.new( 0xff, r * 2, g * 2, b * 2 )
     darker  = Gosu::Color.new( 0xc0, r, g, b )
 
-    @window.draw_quad( left, top, @colour,
-                       left + width, top, @colour,
-                       left + width, top + height, lighter,
-                       left, top + height, lighter, 1 )
+    @window.draw_quad(
+      left, top, @colour, left + width, top, @colour,
+      left + width, top + height, lighter, left, top + height, lighter, 1 )
 
     # Right and Bottom Shadow
 
-    @window.draw_rectangle( point.offset( width, 3 ), Size.new( 4, height ), 1, darker )
-    @window.draw_rectangle( point.offset( 3, height ), Size.new( width, 4 ), 1, darker )
+    @window.draw_rectangle(
+      point.offset( width, 3 ), Size.new( 4, height ), 1, darker )
+
+    @window.draw_rectangle(
+      point.offset( 3, height ), Size.new( width, 4 ), 1, darker )
   end
 
   def show

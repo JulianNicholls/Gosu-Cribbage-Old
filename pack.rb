@@ -69,8 +69,8 @@ module Cribbage
       @front, @back = front, back
     end
 
-    def set_position( point )
-      set_area( point, CARD_SIZE )
+    def place( pos )
+      set_area( pos, CARD_SIZE )
     end
 
     def draw
@@ -90,7 +90,7 @@ module Cribbage
 
       until empty?
         card = deal
-        card.set_position( pos )
+        card.place( pos )
         @fan.push card
 
         pos.move_by!( gap, 0 )

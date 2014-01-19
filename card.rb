@@ -80,8 +80,8 @@ module Cribbage
       @font = font
     end
 
-    def set_position( point )
-      set_area( point, CARD_SIZE )
+    def place( pos )
+      set_area( pos, CARD_SIZE )
     end
 
     class << self

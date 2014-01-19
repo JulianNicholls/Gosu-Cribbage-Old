@@ -46,7 +46,9 @@ module CribbageGame
     COMPUTER_HAND     = Point.new( MARGIN, MARGIN )
     PLAYER_HAND       = Point.new( MARGIN, HEIGHT - (CARD_SIZE.height + MARGIN) )
 
-    PACK_POS          = Point.new( WIDTH - (CARD_SIZE.width + MARGIN), MID_Y - (CARD_SIZE.height / 2) )         # Spare Pack
+    PACK_POS          = Point.new(    # Spare Pack
+                          WIDTH - (CARD_SIZE.width + MARGIN),
+                          MID_Y - (CARD_SIZE.height / 2) )
 
     FAN_POS           = Point.new( 50, PACK_POS.y )
 
@@ -55,9 +57,11 @@ module CribbageGame
     PLAY31_POS        = COMPUTER_HAND.offset( 0, CARD_SIZE.height + CARD_GAP * 2 )
 
     BUTTON_HEIGHT     = 40
-    DISCARD_BUTTON    = Point.new( MARGIN * 3, PLAYER_HAND.y - BUTTON_HEIGHT * 2 )     # Discard Button
+    DISCARD_BUTTON    = Point.new(    # Discard Button
+                          MARGIN * 3,
+                          PLAYER_HAND.y - BUTTON_HEIGHT * 2 )
 
-    SCORE             = Point.new( WIDTH - CARD_SIZE.width, MARGIN )    # Score Position
+    SCORE             = Point.new( WIDTH - CARD_SIZE.width, MARGIN )
     SCORE_BOX_HEIGHT  = 64
   end
 end
